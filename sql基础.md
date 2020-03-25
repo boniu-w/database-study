@@ -93,7 +93,23 @@ mapper文件示例代码:
 	</if>
 ```
 
+### 7.mysql 时区问题
 
+```sql
+set global time_zone = '+8:00';
+set time_zone = '+8:00';
+flush privileges;
+```
+
+
+
+#### 8. mysql 8.0 修改root 密码,前提是进入了mysql,忘记了密码这个问题,还待解决
+
+```sql
+use mysql；
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
+FLUSH PRIVILEGES;
+```
 
 
 
