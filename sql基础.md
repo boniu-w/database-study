@@ -65,3 +65,38 @@ FROM
 4.不要把机密信息直接存放，加密或者hash掉密码和敏感的信息。
 5.应用的异常信息应该给出尽可能少的提示，最好使用自定义的错误信息对原始错误信息进行包装
 6.sql注入的检测方法一般采取辅助软件或网站平台来检测，软件一般采用sql注入检测工具jsky，网站平台就有亿思网站安全平台检测工具。MDCSOFT SCAN等。采用MDCSOFT-IPS可以有效的防御SQL注入，XSS攻击等。
+
+#### 6. mybatis xml中大于号,小于号问题
+
+  附：XML转义字符
+
+```java
+&lt;     	<   	小于号   
+&gt;     	>   	大于号   
+&amp;     	&   	和   
+&apos;     	’   	单引号   
+&quot;     	"   	双引号 
+```
+
+
+
+第二种方法：
+因为这个是xml格式的，所以不允许出现类似">"这样的字符，但是可以使用<![CDATA[ ]]>符号进行说明，将此类符号不进行解析 
+mapper文件示例代码:
+
+```xml
+	<if test="startTime != null ">
+			AND <![CDATA[ order_date >= #{startTime,jdbcType=DATE}  ]]>
+	</if>
+	<if test="endTime != null ">
+			AND <![CDATA[ order_date <= #{endTime,jdbcType=DATE}  ]]>
+	</if>
+```
+
+
+
+
+
+
+
+​		
