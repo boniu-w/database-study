@@ -101,6 +101,12 @@ set time_zone = '+8:00';
 flush privileges;
 ```
 
+在配置文件中加
+
+```xml
+default-time-zone='+8:00'
+```
+
 
 
 #### 8. mysql 8.0 修改root 密码,前提是进入了mysql,忘记了密码这个问题,还待解决
@@ -109,6 +115,31 @@ flush privileges;
 use mysql；
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
 FLUSH PRIVILEGES;
+```
+
+#### 9. mysql 的 group_cancat(字段) 方法查询一对多 非常好用
+
+```sql
+SELECT
+	type,
+	field_name,
+	field_code,
+	GROUP_CONCAT(matching_field_name) as matching_name
+FROM
+	(
+SELECT
+	w.field_name,
+	w.field_code,
+	w.type,
+	m.field_name as matching_field_name
+FROM
+	wordbook w
+	LEFT JOIN matching_to_wordbook m ON w.type = m.type 
+	) test 
+GROUP BY
+	type,
+	field_name,
+	field_code
 ```
 
 
