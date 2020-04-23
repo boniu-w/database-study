@@ -144,6 +144,12 @@ GROUP BY
 
 
 
+#### 10. mysql 日志
+
+	1. 手动开启日志 set global general_log = "on"
+ 	2. 检查是否开启成功 show variables like "general_log%"
+ 	3. 
+
 
 
 ​		
