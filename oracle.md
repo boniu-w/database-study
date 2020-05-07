@@ -30,3 +30,31 @@ alter user system identified by 新密码;
 
 
 
+#### 4. Oracle的 left join on 与 普通where(inner join on) 区别
+
+举个例子就明白了:
+
+```sql
+		SELECT
+			* 
+		FROM
+			`tb_player` p
+			INNER JOIN db_club c ON p.club_id = c.id 
+		WHERE
+			p.id = 320941;
+```
+
+```sql
+		SELECT
+			* 
+		FROM
+			`tb_player` p
+			left JOIN db_club c ON p.club_id = c.id 
+		WHERE
+			p.id = 320941;
+```
+
+​    **第一个 inner join 当p.id 不存在时,是没有输出结果的**
+
+**but 第二个 left join 当p.id 不存在时,会输出左表的数据**
+

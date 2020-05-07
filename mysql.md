@@ -152,4 +152,19 @@ GROUP BY
 
 
 
+#### 11. 数据类型的长度
+
+| 类型       | 长度               | comment              |
+| :--------- | :----------------- | :------------------- |
+| char       | 1-255 字节         | 定长                 |
+| varchar    | 1-255              | 变长                 |
+| tinyblob   | 1-255              | binary large objects |
+| tinytext   | 2^8-1(255)         |                      |
+| blob       | 2^16-1(65535) 字节 |                      |
+| text       | 2^16-1             |                      |
+| mediumblob | 2^24-1(16777215)   |                      |
+| mediumtext | 2^24-1             |                      |
+| longblob   | 2^32-1             |                      |
+| longtext   | 2^32-1             |                      |
+
 ​		
