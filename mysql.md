@@ -168,3 +168,8 @@ GROUP BY
 | longtext   | 2^32-1             |                      |
 
 ​		
+
+#### 12. distinct 与 group by
+
+distinct关键字必须位于所有字段的前面，且作用于其后所有字段
+
