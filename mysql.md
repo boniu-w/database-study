@@ -173,3 +173,70 @@ GROUP BY
 
 distinct关键字必须位于所有字段的前面，且作用于其后所有字段
 
+
+
+#### 13. 普通索引, unique索引(唯一索引), 主键索引
+
+- 创建索引
+
+create index 索引名 on 表名(列名);
+
+create unique index 索引名 on 表名(列名);
+
+- 删除索引
+
+drop index 索引名 on 表名;
+
+alter table 表名 drop index 索引名;
+
+alter table 表名 drop primary key;
+
+- 查看索引
+
+show index from 表名;
+
+show keys from 表名;
+
+
+
+#### 14. 视图
+
+- 创建视图
+
+create view 视图名 as select * from 表名;
+
+
+
+#### 15. 查出时间最大的一条记录
+
+```sql
+    select * from 
+    (select * from liushui order by jiao_yi_shi_jian desc) a 
+    group by a.card_no;
+```
+
+解释: 先按时间排序, 再group by 分组, 这样会把 分组后的第一条数组拿出来,
+
+
+
+#### 16. 主键自增归0
+
+空表时: 删除 主键 再添加;
+
+
+
+#### 17. like用法
+
+```sql
+	select * from liushui where zhai_yao like "%atm%" UNION
+			select * from liushui where zhai_yao like "%取款%" UNION
+				select * from liushui where zhai_yao like "%现支%" UNION
+					select * from liushui where zhai_yao like "%支取%" UNION
+						select * from liushui where zhai_yao like "%卡取%" UNION
+							select * from liushui where zhai_yao like "%柜台转取%" UNION
+							select * from liushui where zhai_yao like "%现销%" UNION
+							select * from liushui where zhai_yao like "%取现%" UNION
+							select * from liushui where zhai_yao like "%消费%" UNION
+							select * from liushui where zhai_yao like "%备用金%" 
+```
+
