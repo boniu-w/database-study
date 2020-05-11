@@ -58,3 +58,20 @@ alter user system identified by 新密码;
 
 **but 第二个 left join 当p.id 不存在时,会输出左表的数据**
 
+
+
+#### 5. 查询Oracle版本
+
+```sql
+	select * from v$version;
+```
+
+
+
+
+
+
+
+
+
+ 

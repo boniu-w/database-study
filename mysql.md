@@ -217,6 +217,10 @@ create view 视图名 as select * from 表名;
 
 解释: 先按时间排序, 再group by 分组, 这样会把 分组后的第一条数组拿出来,
 
+```sql
+	select * from liushui order by jiao_yi_shi_jian desc limit 0,1;
+```
+
 
 
 #### 16. 主键自增归0
@@ -229,14 +233,87 @@ create view 视图名 as select * from 表名;
 
 ```sql
 	select * from liushui where zhai_yao like "%atm%" UNION
-			select * from liushui where zhai_yao like "%取款%" UNION
-				select * from liushui where zhai_yao like "%现支%" UNION
-					select * from liushui where zhai_yao like "%支取%" UNION
-						select * from liushui where zhai_yao like "%卡取%" UNION
-							select * from liushui where zhai_yao like "%柜台转取%" UNION
-							select * from liushui where zhai_yao like "%现销%" UNION
-							select * from liushui where zhai_yao like "%取现%" UNION
-							select * from liushui where zhai_yao like "%消费%" UNION
-							select * from liushui where zhai_yao like "%备用金%" 
+	select * from liushui where zhai_yao like "%取款%" UNION
+	select * from liushui where zhai_yao like "%现支%" UNION
+	select * from liushui where zhai_yao like "%支取%" UNION
+	select * from liushui where zhai_yao like "%卡取%" UNION
+	select * from liushui where zhai_yao like "%柜台转取%" UNION
+	select * from liushui where zhai_yao like "%现销%" UNION
+	select * from liushui where zhai_yao like "%取现%" UNION
+	select * from liushui where zhai_yao like "%消费%" UNION
+	select * from liushui where zhai_yao like "%备用金%" ;
 ```
 
+
+
+#### 18. limit
+
+limit m,n : 从第m+1条开始,取n条数据;
+
+limit n : 是 limit 0,n 的缩写;
+
+#### 19. group by 与 临时表
+
+1. 如果GROUP BY 的列没有索引,产生临时表. 
+
+　　2. 如果GROUP BY时,SELECT的列不止GROUP BY列一个,并且GROUP BY的列不是主键 ,产生临时表. 
+　　3. 如果GROUP BY的列有索引,ORDER BY的列没索引.产生临时表. 
+　　4. 如果GROUP BY的列和ORDER BY的列不一样,即使都有索引也会产生临时表. 
+　　5. 如果GROUP BY或ORDER BY的列不是来自JOIN语句第一个表.会产生临时表. 
+　　6. 如果DISTINCT 和 ORDER BY的列没有索引,产生临时表.
+
+
+
+#### 20. sql语句的执行顺序
+
+```tex
+1、执行FROM语句
+2、执行ON过滤
+3、添加外部行
+4、执行where条件过滤
+5、执行group by分组语句
+6、执行having
+7、select列表
+8、执行distinct去重复数据
+9、执行order by字句
+10、执行limit字句
+```
+
+
+
+#### 21. mysql 中 datetime 与 timestamp
+
+1. datetime的默认值为null，timestamp的默认值不为null，且为系统当前时间（current_timestatmp）。如果不做特殊处理，且update没有指定该列更新，则默认更新为当前时间。
+2. datetime占用8个字节，timestamp占用4个字节。timestamp利用率更高。
+3. 二者存储方式不一样，对于timestamp，它把客户端插入的时间从当前时区转化为世界标准时间（UTC）进行存储，查询时，逆向返回。但对于datetime，基本上存什么是什么。
+4. 二者范围不一样。timestamp范围：‘1970-01-01 00:00:01.000000’ 到 ‘2038-01-19 03:14:07.999999’； datetime范围：’1000-01-01 00:00:00.000000’ 到 ‘9999-12-31 23:59:59.999999’。原因是，timestamp占用4字节，能表示最大的时间毫秒为2的31次方减1，也就是2147483647，换成时间刚好是2038-01-19 03:14:07.999999。
+
+| curdate()                         | 当前日期                                     |
+| --------------------------------- | -------------------------------------------- |
+| curtime()                         | 当前时间                                     |
+| now()                             | 当前日期和时间                               |
+| unix_timestamp(date)              | 返回date的linux时间戳                        |
+| from_unixttime                    | 返回linux的时间戳的日期值                    |
+| week(date)                        | 日期date为一年中的第几周                     |
+| year(date)                        | date的年份值                                 |
+| hour(date)                        | date的小时值                                 |
+| minute(date)                      | date的分钟值                                 |
+| date_format(date,fmt)             | 按fmt格式化date                              |
+| date_add(date,interval expr type) | 返回一个日期或时间值加上一个时间间隔的时间值 |
+| datediff(expr,expr2)              | expr 与 expr2 之间的天数                     |
+
+#### 22. mysql 的存储过程
+
+1. 通常存储过程有助于提高应用程序的性能。当创建，存储过程被编译之后，就存储在数据库中.**但是，MySQL实现的存储过程略有不同。 MySQL存储过程按需编译。 **在编译存储过程之后，MySQL将其放入缓存中。MySQL为每个连接维护自己的存储过程高速缓存.如果应用程序在单个连接中多次使用存储过程，则使用编译版本，否则存储过程的工作方式类似于查询。
+2. 存储过程有助于减少应用程序和数据库服务器之间的流量，因为应用程序不必发送多个冗长的SQL语句，而只能发送存储过程的名称和参数。
+3. 存储的程序对任何应用程序都是可重用的和透明的。存储过程将数据库接口暴露给所有应用程序，以便开发人员不必开发存储过程中已支持的功能。
+4. 存储的程序是安全的。数据库管理员可以向访问数据库中存储过程的应用程序授予适当的权限，而不向基础数据库表提供任何权限。
+
+
+
+mysql 存储过程的缺点:
+
+1. 如果使用大量存储过程，那么使用这些存储过程的每个连接的内存使用量将会大大增加.此外，如果您在存储过程中过度使用大量逻辑操作，则CPU使用率也会增加，因为数据库服务器的设计不当于逻辑运算。
+2. 存储过程的构造使得开发具有复杂业务逻辑的存储过程变得更加困难。
+3. 很难调试存储过程。只有少数数据库管理系统允许您调试存储过程。而且，MySQL不提供调试存储过程的功能。
+4. 开发和维护存储过程并不容易。开发和维护存储过程通常需要一个不是所有应用程序开发人员拥有的专业技能。这可能会导致应用程序开发和维护阶段的问题。
