@@ -68,7 +68,23 @@ alter user system identified by 新密码;
 
 
 
+#### 6. to_date , to_char
 
+```sql
+SELECT to_date('2020-05-12 16:24:32','yyyy-MM-dd hh:mm:ss') from dual;
+```
+
+```sql
+SELECT to_char(sysdate,'yyyy-MM-dd hh:mm:ss') from dual;
+```
+
+**注意: 这里必须用单引号, 双引号报错;**
+
+
+
+#### 7. 单引号, 双引号
+
+字段用双引号 ,其他单引号
 
 
 
