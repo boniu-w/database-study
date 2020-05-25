@@ -231,6 +231,10 @@ create view 视图名 as select * from 表名;
 
 #### 17. like用法
 
+1. %(百分号)
+
+表示任何字符出现任意次数 0-无数次;
+
 ```sql
 	select * from liushui where zhai_yao like "%atm%" UNION
 	select * from liushui where zhai_yao like "%取款%" UNION
@@ -243,6 +247,18 @@ create view 视图名 as select * from 表名;
 	select * from liushui where zhai_yao like "%消费%" UNION
 	select * from liushui where zhai_yao like "%备用金%" ;
 ```
+
+2. like 之 _ (下划线)
+
+"_"表示匹配单个字符 例:
+
+```sql
+select * from human where name like '_雨';
+```
+
+将查询出 名字长度是2个字,且最后一个字是 雨 的 人;
+
+
 
 
 
@@ -288,10 +304,10 @@ limit n : 是 limit 0,n 的缩写;
 3. 二者存储方式不一样，对于timestamp，它把客户端插入的时间从当前时区转化为世界标准时间（UTC）进行存储，查询时，逆向返回。但对于datetime，基本上存什么是什么。
 4. 二者范围不一样。timestamp范围：‘1970-01-01 00:00:01.000000’ 到 ‘2038-01-19 03:14:07.999999’； datetime范围：’1000-01-01 00:00:00.000000’ 到 ‘9999-12-31 23:59:59.999999’。原因是，timestamp占用4字节，能表示最大的时间毫秒为2的31次方减1，也就是2147483647，换成时间刚好是2038-01-19 03:14:07.999999。
 
-| curdate()                         | 当前日期                                     |
+| curdate() CURRENT_DATE()          | 当前日期                                     |
 | --------------------------------- | -------------------------------------------- |
-| curtime()                         | 当前时间                                     |
-| now()                             | 当前日期和时间                               |
+| curtime() CURRENT_TIME()          | 当前时间                                     |
+| now() CURRENT_TIMESTAMP()         | 当前日期和时间                               |
 | unix_timestamp(date)              | 返回date的linux时间戳                        |
 | from_unixttime                    | 返回linux的时间戳的日期值                    |
 | week(date)                        | 日期date为一年中的第几周                     |
@@ -317,3 +333,19 @@ mysql 存储过程的缺点:
 2. 存储过程的构造使得开发具有复杂业务逻辑的存储过程变得更加困难。
 3. 很难调试存储过程。只有少数数据库管理系统允许您调试存储过程。而且，MySQL不提供调试存储过程的功能。
 4. 开发和维护存储过程并不容易。开发和维护存储过程通常需要一个不是所有应用程序开发人员拥有的专业技能。这可能会导致应用程序开发和维护阶段的问题。
+
+
+
+#### 23. 日期字段有时分秒, 我只查 年月日
+
+```sql
+		SELECT
+			count(*)
+		FROM
+			`bank_flow` 
+		WHERE
+			DATE_FORMAT(transaction_date,'%Y-%m-%d') ='2019-11-19';
+```
+
+
+
