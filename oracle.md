@@ -90,6 +90,43 @@ SELECT to_char(sysdate,'yyyy-MM-dd hh24:mi:ss') from dual;
 
 字段用双引号 ,其他单引号
 
+#### 8. nvarchar2  varchar2
+
+nvarchar2(10) : 可以10个汉字
+
+varchar2(10): 不可以
+
+
+
+#### 9. listagg(字段,分隔符) within group(order by 字段) : 列转行 , 与 mysql group_concat()异曲同工
+
+```sql
+	SELECT
+        type,
+        field_name,
+        field_code,
+        listagg( matching_field_name,',') within group (order by type )AS matching_name
+        FROM
+            (
+            SELECT
+                w.field_name,
+                w.field_code,
+                w.type,
+                m.field_name AS matching_field_name
+            FROM
+                wordbook w
+                LEFT JOIN matching_to_wordbook m ON w.type = m.type
+                ) test
+        GROUP BY
+            type,
+            field_name,
+            field_code
+```
+
+
+
+
+
 
 
 
