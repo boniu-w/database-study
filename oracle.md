@@ -125,9 +125,45 @@ varchar2(10): 不可以
 
 
 
+#### 10. 检查约束
+
+检查约束
+
+```sql
+SELECT * FROM user_constraints WHERE table_name='TABLE_NAME';
+```
 
 
 
+删除约束
+
+```sql
+ALTER TABLE TABLE_NAME DROP CONSTRAINT SYS_C00180123;
+```
+
+
+
+#### 11. 添加列,删除列,修改列
+
+删除列: 
+
+```sql
+ALTER TABLE BANK_STATEMENT DROP COLUMN create_time;
+```
+
+添加列: 
+
+```sql
+ALTER TABLE BANK_STATEMENT ADD relation_id varchar2(36) ;
+```
+
+修改列: 
+
+```sql
+Alter table 表名 modify 列名 varchar2(20);
+```
+
+注: 添加,修改列 不需要 column 关键字
 
 
 
