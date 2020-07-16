@@ -385,3 +385,39 @@ update bank_flow set b=a;
 
 #### 27. 使用navicat 链接mysql 使用 replace uuid 会出现uuid 重复
 
+
+
+
+
+#### 28. sql语句 形式 导入文件 示例:
+
+```sql
+LOAD DATA LOCAL INFILE 'C:\\Users\\LPH\\Desktop\\ml-1m\\ml-1m\\movies.dat'
+
+INTO TABLE movies
+
+FIELDS TERMINATED BY '::'
+
+LINES TERMINATED BY '\n'
+
+(id, title, type);
+```
+
+
+
+#### 29. sql语句中的 !=  与 <>
+
+ANSI标准中是用<>(所以建议用<>)，但为了跟大部分数据库保持一致，数据库中一般都提供了 !=(高级语言一般用来表示不等于) 与 <> 来表示不等于：
+
+- MySQL 5.1: 支持 `!=` 和 `<>`
+- PostgreSQL 8.3: 支持 `!=` 和 `<>`
+- SQLite: 支持 `!=` 和 `<>`
+- Oracle 10g: 支持 `!=` 和 `<>`
+- Microsoft SQL Server 2000/2005/2008: 支持 `!=` 和 `<>`
+- IBM Informix Dynamic Server 10: 支持 `!=` 和 `<>`
+- InterBase/Firebird: 支持 `!=` 和 `<>`
+
+最后两个只支持ANSI标准的数据库：
+
+- IBM DB2 UDB 9.5:仅支持 `<>`
+- Apache Derby:仅支持 `<>`
