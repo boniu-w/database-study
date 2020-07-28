@@ -421,3 +421,66 @@ ANSI标准中是用<>(所以建议用<>)，但为了跟大部分数据库保持�
 
 - IBM DB2 UDB 9.5:仅支持 `<>`
 - Apache Derby:仅支持 `<>`
+
+
+
+
+
+#### 30 insert or update
+
+```sql
+REPLACE into user_role VALUES ('1','cad5v165sdv616wd5v','c1a6s1c6as16c51as');
+```
+
+
+
+
+
+#### 31. mysql.help_topic 以字符拆分,一行转多行
+
+````sql
+select substring_index(substring_index('82,83,84,85,86',',',help_topic_id+1),',',-1) as Id
+ 
+from mysql.help_topic
+ 
+where help_topic_id<(length('82,83,84,85,86')-ength(replace('82,83,84,85,86',',',''))+1);
+````
+
+
+
+```sql
+create table personnel_participation_frequency
+SELECT
+	count(*) as count,
+	SUBSTRING_INDEX( SUBSTRING_INDEX( player_ids, ',', help_topic_id + 1 ), ',',- 1 ) as play_id
+FROM
+		db_room as db
+-- 	( SELECT player_ids FROM db_room) AS db
+	LEFT JOIN mysql.help_topic 
+	ON help_topic_id < ( length( db.player_ids ) - length( REPLACE ( db.player_ids, ',', '' ) ) + 1 )
+	GROUP BY play_id
+```
+
+
+
+
+
+#### 32. substring_index(str,delimiter,count);  以正则 分割字符串
+
+
+
+
+
+#### 33. mysql各种命令
+
+```sql
+show create table bs_user; ---查看表的创建语句
+show variable;  --- 查看配置
+desc t_your_table; --- 查看表的设计
+show binary logs; --- 查看日志
+```
+
+
+
+
+
