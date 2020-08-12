@@ -165,6 +165,18 @@ Alter table 表名 modify 列名 varchar2(20);
 
 注: 添加,修改列 不需要 column 关键字
 
+#### 12. oracle 常用命令
 
+| 命令                            | 例                             | 描述                                     |
+| ------------------------------- | ------------------------------ | ---------------------------------------- |
+| sqlplus 用户名/密码 [as sysdba] | sqlplus scott/123456 as sysdba | 超级管理员 加上 as sysdba,普通用户不用加 |
+| show user                       |                                | 查看当前用户                             |
+| conn  用户名/密码 [as sysdba]   | conn scott/123456              | 切换用户                                 |
+| select * from tab;              |                                | 查看所有表                               |
+| desc 表名                       | desc emp;                      | 查看表结构                               |
+|                                 |                                |                                          |
+|                                 |                                |                                          |
+|                                 |                                |                                          |
+|                                 |                                |                                          |
 
  
