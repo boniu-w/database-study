@@ -1,3 +1,7 @@
+[toc]
+
+
+
 #### 1. mysql 根据 日期 查询 数据
 
 ​		transaction_date : 是字段名
@@ -706,7 +710,7 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 
 
 
-#### 35. insert into 表  select ---谨慎使用
+#### 35. insert into 表  select ---谨慎使用, 会锁定表
 
 
 
@@ -718,4 +722,61 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 
 总结:
 使用insert into tablA select * from tableB语句时，一定要确保tableB后面的where，order或者其他条件，都需要有对应的索引，来避免出现tableB全部记录被锁定的情况
+
+
+
+#### 36. between
+
+表示>= and <= ;
+
+
+
+#### 37. 函数整理
+
+
+
+| <span style="white-space: nowrap;">函数&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span> | <span style="white-space: nowrap;">解释&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span> | <span style="white-space: nowrap;">例子&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span> |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| between                                                      | 表示 >= and <= ;                                             | BETWEEN 1 and 60;                                            |
+| date(date)                                                   | 函数返回日期或日期/时间表达式的日期部分, 没有时间部分, 只有日期部分; | select date('2008-08-08 22:23:01'); -- 2008-08-08            |
+| date_format(date, format)                                    |                                                              | select date_format('2008-08-08 22:23:01', '%Y-%m-%d %H:%i:%s');  -- 2008-08-08 22:23:01 |
+| concat(str1, str2, ...)                                      | 拼接字符串                                                   | CONCAT('%','我','%')                                         |
+| now()                                                        | now() 在执行开始时值就得到了                                 | select now(), sleep(3), now();                               |
+| sysydate()                                                   | sysdate() 在函数执行时动态得到值                             | select sysdate(), sleep(3), sysdate();                       |
+| current_timestamp()                                          |                                                              |                                                              |
+| time_format(date, format)                                    |                                                              | select time_format('2008-08-08 22:23:01', '%Y-%m-%d %H:%i:%s');  -- 0000-00-00 22:23:01 |
+| str_to_date(str, format)                                     | 转换成日期格式                                               | select str_to_date('08/09/2008', '%m/%d/%Y'); -- 2008-08-09<br>select str_to_date('08.09.2008 08:09:30', '%m.%d.%Y %h:%i:%s'); -- 2008-08-09 08:09:30 |
+| left(str, length)                                            | 返回字符串str最左边的length个字符                            | select left('foobarbar', 5) -- fooba                         |
+| right(str, length)                                           | 返回字符串str最右边的length个字符                            |                                                              |
+| substring(str, position)                                     | 从字符串str的position位置返回一个子串。从1开始, 而java 是从0开始 | select substring('foobarbar', 5); -- arbar                   |
+| substring(str, position ,length)                             | 从position开始截, 截length长度, 和java不一样                 | SELECT substring('abcdefghijklmn', 2, 4); -- bcde            |
+| trim(str)                                                    | 去除前后空格, 和java 一样                                    | select length(TRIM('  bar ')) as bar,length('  bar ');  --3 6 |
+| replace(str, derected_str, to_str)                           | 替换                                                         | select REPLACE('www.mysql.com', 'w', 'sy'); -- sysysy.mysql.com |
+| repeat(str, count)                                           | 把str 字符串重复 count次, 然后返回                           | select REPEAT('MySQL', 3); -- MySQLMySQLMySQL                |
+| reverse(str)                                                 | 颠倒字符串                                                   | select REVERSE('abc'); -- cba                                |
+| insert(str, pos, len, newstr)                                | 从position位置开始的length个长度, 用newstr替换,              | select INSERT('whatareyou', 5, 3, 'is'); -- whatisyou        |
+| if(expr1, expr2, expr3)                                      |                                                              | SELECT IF(1<2,'it is true','it is false'); -- it is true     |
+| strcmp(expr1, expr2)                                         | 如果字符串相同，STRCMP()返回0，如果第一参数根据当前的排序次序小于第二个，返回-1，否则返回1。 | SELECT STRCMP('test','test'), STRCMP('a','b'), STRCMP('d','c'); -- 0	-1	1 |
+| user()<br>system_user()<br>current_user()<br>session_user()  | 获取用户名                                                   | SELECT user(), SYSTEM_USER(), CURRENT_USER(),CURRENT_USER, SESSION_USER(); --root@10.10.8.18	root@10.10.8.18	root@%	root@%	root@10.10.8.18 |
+| database()<br>schema()                                       | 获取当前数据库                                               | select database(), schema(); -- yxkj_yjgl	yxkj_yjgl       |
+| connection_id()                                              | 返回服务器的连接数，也就是到现在为止MySQL服务的连接次数      | SELECT connection_id();                                      |
+| charset(str)                                                 | 查字符集                                                     | SELECT CHARSET('b'), COLLATION('a');                         |
+| collation(str)                                               | 查字符的排列方式                                             | utf8mb4	utf8mb4_0900_ai_ci                                |
+| password(str)                                                | 加密字符串 , 5.7之后移除了                                   |                                                              |
+| md5(str)                                                     | md5加密                                                      |                                                              |
+| encode(str,pwd_str)                                          | 使用目标字符串进行加密                                       |                                                              |
+| decode(str, pwd_str)                                         | 解密                                                         |                                                              |
+| format(numeral, length)                                      | 将数字保留到小数点后length位                                 | SELECT format(123.2345,2), format(123.2131231,1); -- 123.23	123.2 |
+| ascii(str)                                                   | 返回字符串str的第一个字符的ASCII码                           | SELECT ascii('a'),ascii('b'); -- 97	98                    |
+| bin(x)                                                       | 返回x的二进制                                                | SELECT bin(123);-- 1111011                                   |
+| hex(x)                                                       | 十六进制编码                                                 | SELECT hex(123);-- 7B                                        |
+| oct(x)                                                       | 八进制编码                                                   | SELECT oct(123); -- 173                                      |
+| conv(x,f1,f2)                                                | 将x从f1进制数变成f2进制数                                    | SELECT conv(123456789, 10, 3); -- 22121022020212200          |
+| inet_aton(ip)                                                | 将IP地址转换为数字表示                                       | SELECT inet_aton('121.0.0.1') ;-- 2030043137                 |
+| inet_ntoa(n)                                                 | 将数字n转换成IP的形式                                        | select inet_ntoa(2030043137); -- 121.0.0.1                   |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+
+
 
