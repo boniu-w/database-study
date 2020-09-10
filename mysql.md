@@ -780,3 +780,43 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 
 
 
+
+
+
+
+#### 38. 各种命令
+
+
+
+| command                                                      | description                          | example                          |
+| ------------------------------------------------------------ | ------------------------------------ | -------------------------------- |
+| show engines;                                                | 查看数据库 的 引擎                   |                                  |
+| desc table_name;                                             | 查看表结构                           | desc student;                    |
+| show create table table_name;                                | 显示表的创建语句                     | show create table student;       |
+| show table status like 'table_name';                         | 显示表的当前状态值                   | show table status like 'liushui' |
+| alter table table_name engine=MyISAM; （或 InnoDB 等其它引擎） | 修改表的数据库引擎                   |                                  |
+| show variables like '%general_log%';                         | 查看日志记录是否开启, 和日志文件位置 |                                  |
+| set global general_log = on;                                 | 开启查询日志                         |                                  |
+| show variables like 'log_output';                            | 查看日志 输出类型                    |                                  |
+| set global log_output='table';                               | 设置日志输出类型为table              |                                  |
+| select * from mysql.general_log;                             | 查询日志信息                         |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+|                                                              |                                      |                                  |
+
