@@ -102,11 +102,28 @@ set time_zone = '+8:00';
 flush privileges;
 ```
 
-在配置文件中加
+在配置文件中也要加
 
 ```xml
 default-time-zone='+8:00'
 ```
+
+
+
+运行命令 show variables like "%time_zone";
+
+```sql
+system_time_zone	EDT
+time_zone	+08:00
+```
+
+
+
+system_time_zone  要为 cst 才是 中国时区
+
+
+
+注意: datetime 和 timestamp 在数据库字段定义时,要弄清楚, 建议 定义为 datetime
 
 
 
