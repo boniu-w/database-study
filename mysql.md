@@ -135,6 +135,28 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
 FLUSH PRIVILEGES;
 ```
 
+
+
+更改 user 表中的 host 项，将“localhost”改称“%”（表示所有用户都可以访问），并给 root 用户授权：
+
+```mysql
+$ mysql -u root -p
+ 
+mysql> use mysql;
+mysql>
+mysql> update user set host = '%' where user = 'root';
+mysql>
+mysql> grant all on *.* to root@'%' identified by '123456' with grant option;
+mysql>
+mysql> flush privileges;  # 刷新权限
+mysql>
+mysql> exit
+```
+
+
+
+
+
 #### 9. mysql 的 group_cancat(字段) 方法查询一对多 非常好用
 
 ```sql
