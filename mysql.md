@@ -856,3 +856,15 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 |                                                              |                                      |                                              |
 |                                                              |                                      |                                              |
 
+
+
+
+
+#### 39. mysql 的boolean 类型
+
+
+
+tinyint  1-> true  0-> false 
+
+
+
