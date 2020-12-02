@@ -21,6 +21,20 @@ select * from table1 where second(order_date) between 2 and 12;
 select * from table1 where date(order_date) between '2019-08-04' and '2019-08-04';
 ```
 
+
+
+mysql 的日期问题
+
+java 类型 util.date
+
+mysql-8 类型 datetime
+
+mybatis 如何处理?
+
+
+
+
+
 #### 2.  mysql uuid
 
 ```sql
@@ -779,7 +793,9 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | concat(str1, str2, ...)                                      | 拼接字符串                                                   | CONCAT('%','我','%')                                         |
 | now()                                                        | now() 在执行开始时值就得到了                                 | select now(), sleep(3), now();                               |
 | sysydate()                                                   | sysdate() 在函数执行时动态得到值                             | select sysdate(), sleep(3), sysdate();                       |
-| current_timestamp()                                          |                                                              |                                                              |
+| current_date()                                               | 当前 年月日                                                  |                                                              |
+| current_time()<br />curtime()                                | 当前 时分秒                                                  |                                                              |
+| current_timestamp()                                          | 当前 年月日时分秒                                            |                                                              |
 | time_format(date, format)                                    |                                                              | select time_format('2008-08-08 22:23:01', '%Y-%m-%d %H:%i:%s');  -- 0000-00-00 22:23:01 |
 | str_to_date(str, format)                                     | 转换成日期格式                                               | select str_to_date('08/09/2008', '%m/%d/%Y'); -- 2008-08-09<br>select str_to_date('08.09.2008 08:09:30', '%m.%d.%Y %h:%i:%s'); -- 2008-08-09 08:09:30 |
 | left(str, length)                                            | 返回字符串str最左边的length个字符                            | select left('foobarbar', 5) -- fooba                         |
