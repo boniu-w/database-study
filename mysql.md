@@ -201,8 +201,8 @@ GROUP BY
 #### 10. mysql 日志
 
 	1. 手动开启日志 set global general_log = "on"
- 	2. 检查是否开启成功 show variables like "general_log%"
- 	3. 
+	2. 检查是否开启成功 show variables like "general_log%"
+	3. 
 
 
 
@@ -787,9 +787,9 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 
 | <span style="white-space: nowrap;">函数&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span> | <span style="white-space: nowrap;">解释&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span> | <span style="white-space: nowrap;">例子&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span> |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| between                                                      | 表示 >= and <= ;                                             | BETWEEN 1 and 60;                                            |
-| date(date)                                                   | 函数返回日期或日期/时间表达式的日期部分, 没有时间部分, 只有日期部分; | select date('2008-08-08 22:23:01'); -- 2008-08-08            |
-| date_format(date, format)                                    |                                                              | select date_format('2008-08-08 22:23:01', '%Y-%m-%d %H:%i:%s');  -- 2008-08-08 22:23:01 |
+| between                                                      | 表示 >= and <= ;                                             | BETWEEN 1 and 60; -- >=1 <=60                                |
+| date(field)                                                  | 函数返回日期或日期/时间表达式的日期部分, 没有时间部分, 只有日期部分; | select date(create_time) from traffic_restriction; -- 2008-08-08 |
+| date_format(date, format)                                    | 日期转字符串                                                 | select date_format(create_time, '%Y-%m-%d %H:%i:%s') from traffic_restriction;  -- 2008-08-08 22:23:01 |
 | concat(str1, str2, ...)                                      | 拼接字符串                                                   | CONCAT('%','我','%')                                         |
 | now()                                                        | now() 在执行开始时值就得到了                                 | select now(), sleep(3), now();                               |
 | sysydate()                                                   | sysdate() 在函数执行时动态得到值                             | select sysdate(), sleep(3), sysdate();                       |
@@ -797,7 +797,7 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | current_time()<br />curtime()                                | 当前 时分秒                                                  |                                                              |
 | current_timestamp()                                          | 当前 年月日时分秒                                            |                                                              |
 | time_format(date, format)                                    |                                                              | select time_format('2008-08-08 22:23:01', '%Y-%m-%d %H:%i:%s');  -- 0000-00-00 22:23:01 |
-| str_to_date(str, format)                                     | 转换成日期格式                                               | select str_to_date('08/09/2008', '%m/%d/%Y'); -- 2008-08-09<br>select str_to_date('08.09.2008 08:09:30', '%m.%d.%Y %h:%i:%s'); -- 2008-08-09 08:09:30 |
+| str_to_date(str, format)                                     | 转换成日期格式,                                              | select str_to_date('08/09/2008', '%m/%d/%Y'); -- 2008-08-09<br>select str_to_date('08.09.2008 08:09:30', '%m.%d.%Y %h:%i:%s'); -- 2008-08-09 08:09:30 |
 | left(str, length)                                            | 返回字符串str最左边的length个字符                            | select left('foobarbar', 5) -- fooba                         |
 | right(str, length)                                           | 返回字符串str最右边的length个字符                            |                                                              |
 | substring(str, position)                                     | 从字符串str的position位置返回一个子串。从1开始, 而java 是从0开始 | select substring('foobarbar', 5); -- arbar                   |
@@ -808,7 +808,7 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | reverse(str)                                                 | 颠倒字符串                                                   | select REVERSE('abc'); -- cba                                |
 | insert(str, pos, len, newstr)                                | 从position位置开始的length个长度, 用newstr替换,              | select INSERT('whatareyou', 5, 3, 'is'); -- whatisyou        |
 | if(expr1, expr2, expr3)                                      |                                                              | SELECT IF(1<2,'it is true','it is false'); -- it is true     |
-| strcmp(expr1, expr2)                                         | 如果字符串相同，STRCMP()返回0，如果第一参数根据当前的排序次序小于第二个，返回-1，否则返回1。 | SELECT STRCMP('test','test'), STRCMP('a','b'), STRCMP('d','c'); -- 0	-1	1 |
+| strcmp(expr1, expr2)                                         | 如果字符串相同，STRCMP()返回0，如果第一参数根据当前的次序小于第二个，返回-1，否则返回1。 | SELECT STRCMP('test','test'), STRCMP('a','b'), STRCMP('d','c'); -- 0	-1	1 |
 | user()<br>system_user()<br>current_user()<br>session_user()  | 获取用户名                                                   | SELECT user(), SYSTEM_USER(), CURRENT_USER(),CURRENT_USER, SESSION_USER(); --root@10.10.8.18	root@10.10.8.18	root@%	root@%	root@10.10.8.18 |
 | database()<br>schema()                                       | 获取当前数据库                                               | select database(), schema(); -- yxkj_yjgl	yxkj_yjgl       |
 | connection_id()                                              | 返回服务器的连接数，也就是到现在为止MySQL服务的连接次数      | SELECT connection_id();                                      |
@@ -826,7 +826,7 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | conv(x,f1,f2)                                                | 将x从f1进制数变成f2进制数                                    | SELECT conv(123456789, 10, 3); -- 22121022020212200          |
 | inet_aton(ip)                                                | 将IP地址转换为数字表示                                       | SELECT inet_aton('121.0.0.1') ;-- 2030043137                 |
 | inet_ntoa(n)                                                 | 将数字n转换成IP的形式                                        | select inet_ntoa(2030043137); -- 121.0.0.1                   |
-|                                                              |                                                              |                                                              |
+| cast(expression AS dataType)                                 | 转换数据类型                                                 | cast('12' as int)                                            |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
 
@@ -853,9 +853,9 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | set global log_output='table';                               | 设置日志输出类型为table              | set global log_output='table';               |
 | select * from mysql.general_log;                             | 查询日志信息                         | select * from mysql.general_log;             |
 | alter table 表名 drop foreign key 外键的key(别名);           | 移除外键约束                         | alter table app drop foreign key app_ibfk_1; |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
+| select version();                                            | 查询版本                             |                                              |
+| show processlist;                                            | 查看mysql 进程正在干嘛               |                                              |
+| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                     |                                              |
 |                                                              |                                      |                                              |
 |                                                              |                                      |                                              |
 |                                                              |                                      |                                              |
@@ -880,7 +880,128 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 
 
 
-tinyint  1-> true  0-> false 
+tinyint  1 -> true,  0 -> false 
+
+
+
+# 40. mysql触发器
+
+
+
+```sql
+DELIMITER $$
+CREATE
+    /*[DEFINER = { user | CURRENT_USER }]*/
+    TRIGGER `ssm`.`id_trigger` -- 触发器名称
+    BEFORE INSERT             -- 触发器被触发的时机
+    ON `ssm`.`traveller`       -- 触发器所作用的表名称
+    FOR EACH ROW BEGIN
+		SET new.id=REPLACE(UUID(),'-',''); -- 触发器执行的逻辑
+    END$$
+
+DELIMITER ;
+```
+
+
+
+
+
+# 41. 排序
+
+- 字符串的排序
+
+  对于字符串的排序原理是按位（每个字符）进行比较的，并且是按照每个字符的ASCII码值，包括数字（数字的ASCII值等于该数字的值）
+
+  一般会根据字符串的首字母：大些字母>小写字母>[特殊字符](https://www.baidu.com/s?wd=特殊字符&tn=44039180_cpr&fenlei=mv6quAkxTZn0IZRqIHckPjm4nH00T1dWmhN-mHwBnycLuWF9mymd0ZwV5Hcvrjm3rH6sPfKWUMw85HfYnjn4nH6sgvPsT6KdThsqpZwYTjCEQLGCpyw9Uz4Bmy-bIi4WUvYETgN-TLwGUv3EnHmsPjnzn1bLn1bvnW0YP1n3Ps)>数字。如果首位相同继续排列第二位，直到不同的位。
+
+  比如:
+
+  select id FROM new_bankFlow ORDER BY id asc limit 100;
+
+  结果为:
+
+  1
+  10
+  100
+  1000
+  10000
+  100000
+  1000000
+  1000001
+  1000002
+  1000003
+  1000004
+  1000005
+  1000006
+  1000007
+  1000008
+  1000009
+  100001
+  1000010
+  1000011
+  1000012
+  1000013
+  1000014
+  1000015
+  1000016
+  1000017
+  1000018
+  1000019
+  100002
+  1000020
+  1000021
+
+  观察  1000009   100001 两个值 可看出 在从左数 第6位 1 确实比 0 大, 
+
+  结论: 字符串的比较是从左首个字符 开始比较的
+
+  > select id FROM new_bankFlow ORDER BY (id+0) asc limit 100;
+  >
+  > 1
+  > 2
+  > 3
+  > 4
+  > 5
+  > 6
+  > 7
+  > 8
+  > 9
+  > 10
+  > 11
+  > 12
+  > 13
+  > 14
+  > 15
+  > 16
+  > 17
+  > 18
+  > 19
+  > 20
+
+(id+0) 把 字符 转成了数字, 但是 只对 是纯数字的字段有用, 如果id 里面有字符 那id+0 就不管用了
+
+
+
+
+
+# 42. 主要事项
+
+ ## 1. 关于排序
+
+当数据库字段 数据类型是 varchar, 但是, 实际上都是些数字的时候, 使用order by 容易产生错误, 因为 varchar 的排序 和 数字 排序 规则 不一样
+
+这时候应该 +0 转成 数字
+
+> order by (age+0);
+
+
+
+## 2. 数据库设计
+
+1. 能用int 不用varchar
+2. 
+
+
 
 
 
