@@ -827,8 +827,45 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | inet_aton(ip)                                                | 将IP地址转换为数字表示                                       | SELECT inet_aton('121.0.0.1') ;-- 2030043137                 |
 | inet_ntoa(n)                                                 | 将数字n转换成IP的形式                                        | select inet_ntoa(2030043137); -- 121.0.0.1                   |
 | cast(expression AS dataType)                                 | 转换数据类型                                                 | cast('12' as int)                                            |
+| find_in_set(str, strList)                                    | 查找字符串所在下标,从1开始,  没找到输出0, <br />见下面详情   |                                                              |
 |                                                              |                                                              |                                                              |
-|                                                              |                                                              |                                                              |
+
+
+
+- find_in_set(str, strList)
+
+str: 要查询的字符串
+
+field: 查询的字段
+
+>  SELECT FIND_IN_SET('b', 'a,b,c,d');
+>
+> 输出 2, 可见是
+>
+> select FIND_IN_SET('6', '1'); 输出 0
+
+
+
+下面2个sql 等效; 虽然 171,152,157 这些都是content_category_id 且都存在, 但是, 一旦查找到一个, 就返回了
+
+```sql
+    SELECT
+        * 
+    FROM
+        cms_content 
+    WHERE
+        FIND_IN_SET( content_category_id, '171,
+        152,
+        157,
+        172,
+        163' )
+	
+	SELECT * FROM cms_content WHERE content_category_id=171
+```
+
+
+
+可以和in() 函数做个比较, in 是 在in里面的所有都会输出, 而 find_in_set 只会输出 满足条件的第一个
 
 
 
@@ -986,13 +1023,13 @@ DELIMITER ;
 
 # 42. 主要事项
 
- ## 1. 关于排序
+ ## 1. 关于排序, 字符串形式的数字
 
 当数据库字段 数据类型是 varchar, 但是, 实际上都是些数字的时候, 使用order by 容易产生错误, 因为 varchar 的排序 和 数字 排序 规则 不一样
 
 这时候应该 +0 转成 数字
 
-> order by (age+0);
+> select * from  student order by (age+0);
 
 
 
