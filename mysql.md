@@ -828,11 +828,17 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | inet_ntoa(n)                                                 | 将数字n转换成IP的形式                                        | select inet_ntoa(2030043137); -- 121.0.0.1                   |
 | cast(expression AS dataType)                                 | 转换数据类型                                                 | cast('12' as int)                                            |
 | find_in_set(str, strList)                                    | 查找字符串所在下标,从1开始,  没找到输出0, <br />见下面详情   |                                                              |
-|                                                              |                                                              |                                                              |
+| case when then end                                           | 见下面详情                                                   |                                                              |
 
 
 
-- find_in_set(str, strList)
+
+
+---
+
+
+
+**find_in_set(str, strList)**
 
 str: 要查询的字符串
 
@@ -866,6 +872,31 @@ field: 查询的字段
 
 
 可以和in() 函数做个比较, in 是 在in里面的所有都会输出, 而 find_in_set 只会输出 满足条件的第一个
+
+----------------------------------------------------------------
+
+**case when then end 和 if 和 ifnull 函数 **
+
+```sql
+---------- if --------------
+SELECT  b.*, (if( b.jydszkh='0216014040000489', 'yes', 'no') ) are_node FROM new_bankFlow b WHERE b.jyzh IN ( '0302016501300082666' ,'50000000000082623968' ) AND b.jyje 		  BETWEEN 10000 AND 20000 AND b.jyrq BETWEEN '2016-08-04' AND '2016-08-20' 
+
+---------- ifnull --------------
+SELECT  b.*, ( IFNULL(b.dshm,'kong') ) are_node FROM new_bankFlow b WHERE b.jyzh IN ( '0302016501300082666' ,'50000000000082623968' ) AND b.jyje 		  BETWEEN 10000 AND 20000 AND b.jyrq BETWEEN '2016-08-04' AND '2016-08-20' 
+
+---------- case when then end  --------------
+SELECT  b.*, ( case b.jydszkh when  '0216014040000489' then 'feikong' else '' end) are_node FROM new_bankFlow b WHERE b.jyzh IN ( '0302016501300082666' ,'50000000000082623968' ) AND b.jyje 		  BETWEEN 10000 AND 20000 AND b.jyrq BETWEEN '2016-08-04' AND '2016-08-20' 
+```
+
+
+
+**case 的空值判断 必须用这种**
+
+```sql
+SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  end) are_node FROM new_bankFlow b WHERE b.jyzh IN ( '0302016501300082666' ,'50000000000082623968' ) AND b.jyje 		  BETWEEN 10000 AND 20000 AND b.jyrq BETWEEN '2016-08-04' AND '2016-08-20' 
+```
+
+
 
 
 
@@ -943,7 +974,7 @@ DELIMITER ;
 
 
 
-# 41. 字符串列的排序问题
+# 41. 字符串列的排序问题 不仅是排序, 在between时也有这个问题
 
 - 字符串的排序
 
@@ -1017,6 +1048,12 @@ DELIMITER ;
 
 (id+0) 把 字符 转成了数字, 但是 只对 是纯数字的字段有用, 如果id 里面有字符 那id+0 就不管用了
 
+```java
+AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
+```
+
+
+
 
 
 
@@ -1036,7 +1073,7 @@ DELIMITER ;
 ## 2. 数据库设计
 
 1. 能用int 不用varchar
-2. 
+2. 默认值最好不要为null,
 
 
 
