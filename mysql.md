@@ -894,6 +894,17 @@ SELECT  b.*, ( case b.jydszkh when  '0216014040000489' then 'feikong' else '' en
 
 ```sql
 SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  end) are_node FROM new_bankFlow b WHERE b.jyzh IN ( '0302016501300082666' ,'50000000000082623968' ) AND b.jyje 		  BETWEEN 10000 AND 20000 AND b.jyrq BETWEEN '2016-08-04' AND '2016-08-20' 
+
+------------------------------------
+	select bf.*, 
+	( case  
+		when bf.jydszkh='0216014040000489' then 'feikong'
+		when bf.jydszkh is NULL then 'kong' 
+		when bf.jydszkh='' then 'kong' 
+		else  'qita'
+		end
+	) are_node
+   from new_bankFlow bf 
 ```
 
 
@@ -908,37 +919,37 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 
 
 
-| command                                                      | description                          | example                                      |
-| ------------------------------------------------------------ | ------------------------------------ | -------------------------------------------- |
-| show engines;                                                | 查看数据库 的 引擎                   | show engines;                                |
-| desc table_name;                                             | 查看表结构                           | desc student;                                |
-| show create table table_name;                                | 显示表的创建语句, 可查看外键约束     | show create table student;                   |
-| show table status like 'table_name';                         | 显示表的当前状态值                   | show table status like 'liushui';            |
-| alter table table_name engine=MyISAM; （或 InnoDB 等其它引擎） | 修改表的数据库引擎                   | alter table liushui engine=InnoDB;           |
-| show variables like '%general_log%';                         | 查看日志记录是否开启, 和日志文件位置 | show variables like '%general_log%';         |
-| set global general_log = on;                                 | 开启查询日志                         | set global general_log = on;                 |
-| show variables like 'log_output';                            | 查看日志 输出类型                    | show variables like 'log_output';            |
-| set global log_output='table';                               | 设置日志输出类型为table              | set global log_output='table';               |
-| select * from mysql.general_log;                             | 查询日志信息                         | select * from mysql.general_log;             |
-| alter table 表名 drop foreign key 外键的key(别名);           | 移除外键约束                         | alter table app drop foreign key app_ibfk_1; |
-| select version();                                            | 查询版本                             |                                              |
-| show processlist;                                            | 查看mysql 进程正在干嘛               |                                              |
-| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                     |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
-|                                                              |                                      |                                              |
+| command                                                      | description                                                  | example                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| show engines;                                                | 查看数据库 的 引擎                                           | show engines;                                                |
+| desc table_name;                                             | 查看表结构                                                   | desc student;                                                |
+| show create table table_name;                                | 显示表的创建语句, 可查看外键约束                             | show create table student;                                   |
+| show table status like 'table_name';                         | 显示表的当前状态值                                           | show table status like 'liushui';                            |
+| alter table table_name engine=MyISAM; （或 InnoDB 等其它引擎） | 修改表的数据库引擎                                           | alter table liushui engine=InnoDB;                           |
+| show variables like '%general_log%';                         | 查看日志记录是否开启, 和日志文件位置                         | show variables like '%general_log%';                         |
+| set global general_log = on;                                 | 开启查询日志                                                 | set global general_log = on;                                 |
+| show variables like 'log_output';                            | 查看日志 输出类型                                            | show variables like 'log_output';                            |
+| set global log_output='table';                               | 设置日志输出类型为table                                      | set global log_output='table';                               |
+| select * from mysql.general_log;                             | 查询日志信息                                                 | select * from mysql.general_log;                             |
+| alter table 表名 drop foreign key 外键的key(别名);           | 移除外键约束                                                 | alter table app drop foreign key app_ibfk_1;                 |
+| select version();                                            | 查询版本                                                     |                                                              |
+| show processlist;                                            | 查看mysql 进程正在干嘛                                       |                                                              |
+| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                             |                                                              |
+| SELECT<br/>	table_name <br/>FROM<br/>	information_schema.TABLES <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_type = 'base table'; | 查询数据库种所有表名;<br/>查询表名                           |                                                              |
+| SELECT<br/>*, COLUMN_NAME<br/>FROM<br/>	information_schema.COLUMNS <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_name = 'construction_data'; | 查询列名<br />查询一个表中的所有列名                         |                                                              |
+| SELECT<br/>	TABLE_NAME,<br/>	COLUMN_NAME,<br/>	CONSTRAINT_NAME,<br/>	REFERENCED_TABLE_NAME,<br/>	REFERENCED_COLUMN_NAME <br/>FROM<br/>INFORMATION_SCHEMA.KEY_COLUMN_USAGE <br/>WHERE<br/>	table_name = 'basic_data';<br/> | 查询外键                                                     | mysql和oracle一样也是有数据字典表的，是存在单独的一个库叫INFORMATION_SCHEMA，要查看某张表的外键要从字典表中查找 |
+| SELECT<br/>	* <br/>FROM<br/>INFORMATION_SCHEMA.KEY_COLUMN_USAGE <br/>WHERE<br/>	referenced_table_name = 'basic_data'; | 查询 所有 以a表的id 为外键的表<br />查询一个表的主键是哪些表的外键 |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
+|                                                              |                                                              |                                                              |
 
 
 
@@ -1077,5 +1088,41 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 
 
 
+# 43. sql语句
 
+
+
+
+
+| sql语句                                                      | description            |      |
+| ------------------------------------------------------------ | ---------------------- | ---- |
+| alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default '' ; | 添加列                 |      |
+| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型       |      |
+| update bank_flow set b=a;                                    | 把一列的值 挪到 另一列 |      |
+| UPDATE bank_flow set id= replace(uuid(),"-","");             | 修改整列的值           |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
+|                                                              |                        |      |
 
