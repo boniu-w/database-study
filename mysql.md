@@ -23,6 +23,52 @@ select * from table1 where date(order_date) between '2019-08-04' and '2019-08-04
 
 
 
+```sql
+			SELECT
+				id,
+				basic_data_id,
+				inspection_date,
+				inspection_type,
+				inspection_kp_s,
+				inspection_kp_e,
+				length_accurancy,
+				depth_accurancy,
+				confidence_level 
+			FROM
+				ili_history 
+			WHERE
+				(
+				 inspection_date
+				BETWEEN 
+					STR_TO_DATE('2021-07-09', '%Y-%m-%d %H:%i:%s')
+				AND
+					STR_TO_DATE('2021-07-10', '%Y-%m-%d %H:%i:%s')	
+				)
+```
+
+
+
+数据库字段是 datetime, 后台传入的是string: 
+
+```sql
+SELECT
+	id,
+	basic_data_id,
+	inspection_date,
+	inspection_type,
+	inspection_kp_s,
+	inspection_kp_e,
+	length_accurancy,
+	depth_accurancy,
+	confidence_level 
+FROM
+	ili_history
+WHERE
+	( DATE_FORMAT(inspection_date,'%Y-%m-%d') = "2021-07-09" )
+```
+
+
+
 mysql 的日期问题
 
 java 类型 util.date
@@ -779,9 +825,7 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 
 表示>= and <= ;
 
-
-
-#### 37. 函数整理
+# 37. 函数整理
 
 
 
@@ -790,6 +834,7 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | between                                                      | 表示 >= and <= ;                                             | BETWEEN 1 and 60; -- >=1 <=60                                |
 | date(field)                                                  | 函数返回日期或日期/时间表达式的日期部分, 没有时间部分, 只有日期部分; | select date(create_time) from traffic_restriction; -- 2008-08-08 |
 | date_format(date, format)                                    | 日期转字符串                                                 | select date_format(create_time, '%Y-%m-%d %H:%i:%s') from traffic_restriction;  -- 2008-08-08 22:23:01 |
+| str_to_date(str, format)                                     | 转换成日期格式,                                              | select str_to_date('08/09/2008', '%m/%d/%Y'); -- 2008-08-09<br>select str_to_date('08.09.2008 08:09:30', '%m.%d.%Y %h:%i:%s'); -- 2008-08-09 08:09:30 |
 | concat(str1, str2, ...)                                      | 拼接字符串                                                   | CONCAT('%','我','%')                                         |
 | now()                                                        | now() 在执行开始时值就得到了                                 | select now(), sleep(3), now();                               |
 | sysydate()                                                   | sysdate() 在函数执行时动态得到值                             | select sysdate(), sleep(3), sysdate();                       |
@@ -797,7 +842,6 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | current_time()<br />curtime()                                | 当前 时分秒                                                  |                                                              |
 | current_timestamp()                                          | 当前 年月日时分秒                                            |                                                              |
 | time_format(date, format)                                    |                                                              | select time_format('2008-08-08 22:23:01', '%Y-%m-%d %H:%i:%s');  -- 0000-00-00 22:23:01 |
-| str_to_date(str, format)                                     | 转换成日期格式,                                              | select str_to_date('08/09/2008', '%m/%d/%Y'); -- 2008-08-09<br>select str_to_date('08.09.2008 08:09:30', '%m.%d.%Y %h:%i:%s'); -- 2008-08-09 08:09:30 |
 | left(str, length)                                            | 返回字符串str最左边的length个字符                            | select left('foobarbar', 5) -- fooba                         |
 | right(str, length)                                           | 返回字符串str最右边的length个字符                            |                                                              |
 | substring(str, position)                                     | 从字符串str的position位置返回一个子串。从1开始, 而java 是从0开始 | select substring('foobarbar', 5); -- arbar                   |
@@ -829,6 +873,10 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 | cast(expression AS dataType)                                 | 转换数据类型                                                 | cast('12' as int)                                            |
 | find_in_set(str, strList)                                    | 查找字符串所在下标,从1开始,  没找到输出0, <br />见下面详情   |                                                              |
 | case when then end                                           | 见下面详情                                                   |                                                              |
+
+
+
+
 
 
 
@@ -915,7 +963,7 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 
 
 
-#### 38. 各种命令
+# 38. 各种命令
 
 
 
@@ -955,7 +1003,7 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 
 
 
-#### 39. mysql 的boolean 类型
+# 39. mysql 的boolean 类型
 
 
 
@@ -1125,4 +1173,31 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 |                                                              |                        |      |
 |                                                              |                        |      |
 |                                                              |                        |      |
+
+
+
+
+
+# 44. delete   truncate
+
+
+
+truncate的效率高于delete
+
+truncate 清除数据后不记录日志，不可以恢复数据，
+
+delete清除数据后记录日志，可以恢复数据，相当于将表中所有记录一条一条删除
+
+
+
+# 45. 各种优化语句
+
+## 1. 查询是否存在
+
+- select count(*) from tablename where a=? ;
+- select 1 from tablename where a=? limit 1 ;
+
+第二种更好
+
+
 
