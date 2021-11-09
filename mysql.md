@@ -991,7 +991,7 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | SET FOREIGN_KEY_CHECKS = 0;                                  | 禁用外键关联                                                 |                                                              |
 | SET FOREIGN_KEY_CHECKS = 1;                                  | 开启外键关联                                                 |                                                              |
 | SELECT * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS;          | 查询所有数据库的约束情况                                     |                                                              |
-|                                                              |                                                              |                                                              |
+| select @@transaction_isolation;                              | 查询事务级别                                                 |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
