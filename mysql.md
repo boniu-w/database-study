@@ -299,6 +299,10 @@ show keys from 表名;
 
 
 
+注: 主键上的索引, 与 创建的 索引 不一样, 
+
+
+
 #### 14. 视图
 
 - 创建视图
@@ -483,6 +487,41 @@ mysql 存储过程的缺点:
 2. 存储过程的构造使得开发具有复杂业务逻辑的存储过程变得更加困难。
 3. 很难调试存储过程。只有少数数据库管理系统允许您调试存储过程。而且，MySQL不提供调试存储过程的功能。
 4. 开发和维护存储过程并不容易。开发和维护存储过程通常需要一个不是所有应用程序开发人员拥有的专业技能。这可能会导致应用程序开发和维护阶段的问题。
+
+
+
+创建 存储过程 例子2:  插入表数据 300w条
+
+```sql
+DELIMITER ;;
+CREATE PROCEDURE batch_insert_log()
+BEGIN
+  DECLARE i INT DEFAULT 1;
+  DECLARE userId INT DEFAULT 3000000;
+ set @execSql = 'INSERT INTO `wg`.`user_operation_log`(`user_id`, `ip`, `op_data`, `attr1`, `attr2`, `attr3`, `attr4`, `attr5`, `attr6`, `attr7`, `attr8`, `attr9`, `attr10`, `attr11`, `attr12`) VALUES';
+ set @execData = '';
+  WHILE i<=3000000 DO
+   set @attr = "'测试很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长的属性'";
+  set @execData = concat(@execData, "(", userId + i, ", '10.0.69.175', '用户登录操作'", ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ")");
+  if i % 1000 = 0
+  then
+     set @stmtSql = concat(@execSql, @execData,";");
+    prepare stmt from @stmtSql;
+    execute stmt;
+    DEALLOCATE prepare stmt;
+    commit;
+    set @execData = "";
+   else
+     set @execData = concat(@execData, ",");
+   end if;
+  SET i=i+1;
+  END WHILE;
+
+END;;
+DELIMITER ;
+```
+
+
 
 
 
@@ -804,6 +843,19 @@ MaxCompute可以理解为开源的Hive，提供sql/mapreduce/ai算法/python脚�
 
 
 
+查询优化 实例 1: 
+
+1. 使用子查询方式, 效率会高很多, 在id字段上创建索引, 比没有索引快几十倍, 没有索引用时2.6秒左右, 有索引 用时0.17秒左右
+
+```sql
+SELECT * FROM `user_operation_log` WHERE id >= (SELECT id FROM `user_operation_log` where id = 1000000) LIMIT 10; // id是数字,且自增或雪花, 可以比较大小
+SELECT * FROM `user_operation_log` WHERE id IN (SELECT t.id FROM (SELECT id FROM `user_operation_log` LIMIT 1000000, 10) AS t); // id 不必自增
+```
+
+
+
+
+
 
 
 #### 35. insert into 表  select ---谨慎使用, 会锁定表
@@ -967,7 +1019,7 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 
 
 
-| command                                                      | description                                                  | example                                                      |
+| command                                                      | <span style="white-space: nowrap;">description&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span> | example                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | show engines;                                                | 查看数据库 的 引擎                                           | show engines;                                                |
 | desc table_name;                                             | 查看表结构                                                   | desc student;                                                |
@@ -983,15 +1035,15 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | select version();                                            | 查询版本                                                     |                                                              |
 | show processlist;                                            | 查看mysql 进程正在干嘛                                       |                                                              |
 | alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                             |                                                              |
-| SELECT<br/>	table_name <br/>FROM<br/>	information_schema.TABLES <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_type = 'base table'; | 查询数据库种所有表名;<br/>查询表名                           |                                                              |
+| SELECT<br/>	table_name <br/>FROM<br/>	information_schema.TABLES <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_type = 'base table'; | 查询数据库中所有表名;<br/>查询表名                           |                                                              |
 | SELECT<br/>*, COLUMN_NAME<br/>FROM<br/>	information_schema.COLUMNS <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_name = 'construction_data'; | 查询列名<br />查询一个表中的所有列名                         |                                                              |
 | SELECT<br/>	TABLE_NAME,<br/>	COLUMN_NAME,<br/>	CONSTRAINT_NAME,<br/>	REFERENCED_TABLE_NAME,<br/>	REFERENCED_COLUMN_NAME <br/>FROM<br/>INFORMATION_SCHEMA.KEY_COLUMN_USAGE <br/>WHERE<br/>	table_name = 'basic_data';<br/> | 查询外键                                                     | mysql和oracle一样也是有数据字典表的，是存在单独的一个库叫INFORMATION_SCHEMA，要查看某张表的外键要从字典表中查找 |
 | SELECT<br/>	* <br/>FROM<br/>INFORMATION_SCHEMA.KEY_COLUMN_USAGE <br/>WHERE<br/>	referenced_table_name = 'basic_data'; | 查询 所有 以a表的id 为外键的表<br />查询一个表的主键是哪些表的外键 |                                                              |
 | SELECT @@foreign_key_checks;                                 | 查询外键关联情况, 1为有外键关联                              |                                                              |
-| SET FOREIGN_KEY_CHECKS = 0;                                  | 禁用外键关联                                                 |                                                              |
+| SET FOREIGN_KEY_CHECKS = 0;                                  | 禁用外键关联                                                 | 删除有外键约束的表时,可以用                                  |
 | SET FOREIGN_KEY_CHECKS = 1;                                  | 开启外键关联                                                 |                                                              |
 | SELECT * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS;          | 查询所有数据库的约束情况                                     |                                                              |
-| select @@transaction_isolation;                              | 查询事务级别                                                 |                                                              |
+| select @@transaction_isolation;<br />select @@tx_isolation;  | 查询事务级别(看版本使用不同的)                               | show variables like '%tx_isolation%';                        |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
@@ -1148,7 +1200,7 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 | alter table 表名 modify column 字段名 类型                   | 修改字段数据类型       |      |
 | update bank_flow set b=a;                                    | 把一列的值 挪到 另一列 |      |
 | UPDATE bank_flow set id= replace(uuid(),"-","");             | 修改整列的值           |      |
-|                                                              |                        |      |
+| delete from api5792007_detail where corrosion_assessment_history_id = ? | 没有星号               |      |
 |                                                              |                        |      |
 |                                                              |                        |      |
 |                                                              |                        |      |
@@ -1198,6 +1250,58 @@ delete清除数据后记录日志，可以恢复数据，相当于将表中所�
 - select 1 from tablename where a=? limit 1 ;
 
 第二种更好
+
+## 2. 查询优化
+
+查询优化 实例 1: 
+
+1. 使用子查询方式, 效率会高很多, 在id字段上创建索引, 比没有索引快几十倍, 没有索引用时2.6秒左右, 有索引 用时0.17秒左右
+
+```sql
+SELECT * FROM `user_operation_log` WHERE id >=1000000 LIMIT 10;
+SELECT * FROM `user_operation_log` WHERE id >= (SELECT id FROM `user_operation_log` where id = 1000000) LIMIT 10; // id是数字,且自增或雪花, 可以比较大小
+SELECT * FROM `user_operation_log` WHERE id IN (SELECT t.id FROM (SELECT id FROM `user_operation_log` LIMIT 1000000, 10) AS t); // id 不必自增
+```
+
+
+
+
+
+# 46. 关于用户权限的设计
+
+分为这样几张表 
+
+- 用户表
+- 角色表
+- 用户-角色 关联表
+- 菜单表
+- 菜单-角色关联表
+
+
+
+1.  当加载页面时, 在 菜单-角色 关联表里 根据 角色id 查 关联的 菜单id
+2.  在菜单表里, 根据菜单id 查 权限
+3.  如果有此权限, 则通过
+
+
+
+菜单表的设计: 
+
+```sql
+CREATE TABLE `sys_menu` (
+  `menu_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `parent_id` bigint(20) DEFAULT NULL COMMENT '父菜单ID，一级菜单为0',
+  `name` varchar(50) DEFAULT NULL COMMENT '菜单名称',
+  `url` varchar(200) DEFAULT NULL COMMENT '菜单URL',
+  `perms` varchar(500) DEFAULT NULL COMMENT '授权(多个用逗号分隔，如：user:list,user:create)',
+  `type` int(11) DEFAULT NULL COMMENT '类型   0：目录   1：菜单   2：按钮',
+  `icon` varchar(50) DEFAULT NULL COMMENT '菜单图标',
+  `order_num` int(11) DEFAULT NULL COMMENT '排序',
+  `create_time` datetime DEFAULT current_timestamp(),
+  `update_time` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`menu_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1483265908959068163 DEFAULT CHARSET=utf8mb4 COMMENT='菜单管理';
+```
 
 
 
