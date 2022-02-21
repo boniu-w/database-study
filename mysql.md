@@ -1044,7 +1044,7 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | SET FOREIGN_KEY_CHECKS = 1;                                  | 开启外键关联                                                 |                                                              |
 | SELECT * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS;          | 查询所有数据库的约束情况                                     |                                                              |
 | select @@transaction_isolation;<br />select @@tx_isolation;  | 查询事务级别(看版本使用不同的)                               | show variables like '%tx_isolation%';                        |
-|                                                              |                                                              |                                                              |
+| show global varibales like 'port'                            | 查询端口号                                                   |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
@@ -1063,9 +1063,9 @@ tinyint  1 -> true,  0 -> false
 
 
 
-# 40. mysql触发器
+# 40. mysql触发器, 存储过程, 函数
 
-
+触发器
 
 ```sql
 DELIMITER $$
@@ -1079,6 +1079,37 @@ CREATE
     END$$
 
 DELIMITER ;
+```
+
+
+
+函数
+
+```sql
+CREATE DEFINER=`root`@`localhost` PROCEDURE `batch_insert_log`()
+BEGIN
+  DECLARE i INT DEFAULT 1;
+  DECLARE userId INT DEFAULT 3000000;
+ set @execSql = 'INSERT INTO `wg`.`user_operation_log`(`user_id`, `ip`, `op_data`, `attr1`, `attr2`, `attr3`, `attr4`, `attr5`, `attr6`, `attr7`, `attr8`, `attr9`, `attr10`, `attr11`, `attr12`) VALUES';
+ set @execData = '';
+  WHILE i<=3000000 DO
+   set @attr = "'测试很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长的属性'";
+  set @execData = concat(@execData, "(", userId + i, ", '10.0.69.175', '用户登录操作'", ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ",", @attr, ")");
+  if i % 1000 = 0
+  then
+     set @stmtSql = concat(@execSql, @execData,";");
+    prepare stmt from @stmtSql;
+    execute stmt;
+    DEALLOCATE prepare stmt;
+    commit;
+    set @execData = "";
+   else
+     set @execData = concat(@execData, ",");
+   end if;
+  SET i=i+1;
+  END WHILE;
+
+END
 ```
 
 
@@ -1230,7 +1261,7 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 
 
 
-# 44. delete   truncate
+# 44. delete 对比  truncate
 
 
 
@@ -1304,4 +1335,52 @@ CREATE TABLE `sys_menu` (
 ```
 
 
+
+# 47. ubuntu mysql8
+
+## 1.  远程连接
+
+1. 
+
+```sql
+use mysql;
+
+--  将所有用户视为root  ---
+update user set host='%' where user="root"; 
+
+flush privileges;
+grant all privileges on *.* to 'root'@'%' with grant option;
+flush privileges;
+```
+
+​	
+
+2. **mysql 配置文件**:  /etc/mysql/mysql.conf.d/mysqld.cnf
+
+ 修改这个文件 
+
+修改为:  bind-address=0.0.0.1
+
+3. 防火墙设置
+
+   1. 开启防火墙
+
+   ```shell
+   # 关闭防火墙
+   systemctl stop firewalld.service
+   # 开启防火墙
+   systemctl start firewalld.service
+   # 查看防火墙状态
+   firewall-cmd --state
+   ```
+
+   2. 开放 3306 端口
+
+      ```shell
+      sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent  
+      #  重新载入一下防火墙设置，使设置生效 
+      sudo firewall-cmd --reload
+      ```
+
+      
 
