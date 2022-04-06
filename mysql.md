@@ -217,7 +217,7 @@ mysql> exit
 
 
 
-#### 9. mysql 的 group_cancat(字段) 方法查询一对多 非常好用
+#### 9. mysql 的 group_cancat(字段) 方法查询一对多 非常好用, 列转行
 
 ```sql
 SELECT
@@ -925,6 +925,7 @@ SELECT * FROM `user_operation_log` WHERE id IN (SELECT t.id FROM (SELECT id FROM
 | cast(expression AS dataType)                                 | 转换数据类型                                                 | cast('12' as int)                                            |
 | find_in_set(str, strList)                                    | 查找字符串所在下标,从1开始,  没找到输出0, <br />见下面详情   |                                                              |
 | case when then end                                           | 见下面详情                                                   |                                                              |
+| select database()                                            | 查询当前数据库名称;                                          |                                                              |
 
 
 
@@ -1032,12 +1033,13 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | set global log_output='table';                               | 设置日志输出类型为table                                      | set global log_output='table';                               |
 | select * from mysql.general_log;                             | 查询日志信息                                                 | select * from mysql.general_log;                             |
 | alter table 表名 drop foreign key 外键的key(别名);           | 移除外键约束                                                 | alter table app drop foreign key app_ibfk_1;                 |
+| alter table 表名 add constraint FK_ID foreign key(你的外键字段名) REFERENCES 外表表名(对应的表的主键字段名); | 新增外键约束                                                 | alter table tb_active add constraint FK_ID foreign key(user_id) REFERENCES tb_user(id) |
 | select version();                                            | 查询版本                                                     |                                                              |
 | show processlist;                                            | 查看mysql 进程正在干嘛                                       |                                                              |
 | alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                             |                                                              |
 | SELECT<br/>	table_name <br/>FROM<br/>	information_schema.TABLES <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_type = 'base table'; | 查询数据库中所有表名;<br/>查询表名                           |                                                              |
 | SELECT<br/>*, COLUMN_NAME<br/>FROM<br/>	information_schema.COLUMNS <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_name = 'construction_data'; | 查询列名<br />查询一个表中的所有列名                         |                                                              |
-| SELECT<br/>	TABLE_NAME,<br/>	COLUMN_NAME,<br/>	CONSTRAINT_NAME,<br/>	REFERENCED_TABLE_NAME,<br/>	REFERENCED_COLUMN_NAME <br/>FROM<br/>INFORMATION_SCHEMA.KEY_COLUMN_USAGE <br/>WHERE<br/>	table_name = 'basic_data';<br/> | 查询外键                                                     | mysql和oracle一样也是有数据字典表的，是存在单独的一个库叫INFORMATION_SCHEMA，要查看某张表的外键要从字典表中查找 |
+| SELECT<br/>	TABLE_NAME,<br/>	COLUMN_NAME,<br/>	CONSTRAINT_NAME,<br/>	REFERENCED_TABLE_NAME,<br/>	REFERENCED_COLUMN_NAME <br/>FROM<br/>INFORMATION_SCHEMA.KEY_COLUMN_USAGE <br/>WHERE<br/>	table_name = 'basic_data';<br/> | 查询外键, 一个表的主键是那些表的外键                         | mysql和oracle一样也是有数据字典表的，是存在单独的一个库叫INFORMATION_SCHEMA，要查看某张表的外键要从字典表中查找 |
 | SELECT<br/>	* <br/>FROM<br/>INFORMATION_SCHEMA.KEY_COLUMN_USAGE <br/>WHERE<br/>	referenced_table_name = 'basic_data'; | 查询 所有 以a表的id 为外键的表<br />查询一个表的主键是哪些表的外键 |                                                              |
 | SELECT @@foreign_key_checks;                                 | 查询外键关联情况, 1为有外键关联                              |                                                              |
 | SET FOREIGN_KEY_CHECKS = 0;                                  | 禁用外键关联                                                 | 删除有外键约束的表时,可以用                                  |
@@ -1045,7 +1047,7 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | SELECT * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS;          | 查询所有数据库的约束情况                                     |                                                              |
 | select @@transaction_isolation;<br />select @@tx_isolation;  | 查询事务级别(看版本使用不同的)                               | show variables like '%tx_isolation%';                        |
 | show global varibales like 'port'                            | 查询端口号                                                   |                                                              |
-|                                                              |                                                              |                                                              |
+| select database()                                            | 查询当前数据库名称                                           |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
@@ -1382,5 +1384,75 @@ flush privileges;
       sudo firewall-cmd --reload
       ```
 
-      
+
+
+# 48. 英语
+
+
+
+ 
+
+|                  |              |      |
+| ---------------- | ------------ | ---- |
+| Case sensitive   | 区分大小写   |      |
+| Case Insensitive | 不区分大小写 |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+|                  |              |      |
+
+
+
+# 49. 一次查询一千条数据 和  每次查询 一条数据 查询一千次 哪个好? 
+
+
+
+MySQL 中，每一次查询要经过如下过程：
+
+1. SQL 接口（SQL Interface）接受用户输入的 SQL 命令，此时会建立 Socket 连接；
+2. SQL 命令传递到解析器（Parser）的时候会被解析器验证和解析，将 SQL 语句分解成数据结构，并将这个结构传递到后续步骤，以后 SQL 语句的传递和处理就是基于这个结构；如果在分解构成中遇到错误，那么就说明这个 SQL 语句是不合理的。
+3. SQL 语句在查询之前会使用查询优化器（Optimizer）对查询进行优化，构建查询计划；
+4. 如果查询缓存有命中的查询结果，查询语句就可以直接去查询缓存中取数据。这一部分是通过查询缓存（Cache 和 Buffer）实现。
+5. 利用存储引擎（Engine）和磁盘进行交互，从硬盘读取数据；
+6. SQL 接口（SQL Interface）返回用户需要查询的结果。此时 SQL 执行已经完成，关闭 Socket 连接。
+
+
+
+
+
+
 
