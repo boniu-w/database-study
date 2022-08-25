@@ -303,11 +303,19 @@ show keys from 表名;
 
 
 
-#### 14. 视图
+#### 14. 视图, 视图的查询, 修改 等与 普通表基本类似
 
 - 创建视图
 
 create view 视图名 as select * from 表名;
+
+
+
+| description  | command                                   | example                      |
+| ------------ | ----------------------------------------- | ---------------------------- |
+| 创建视图     | create view 视图名 as select * from 表名; |                              |
+| 查询视图结构 | DESC 视图名 或者 SHOW FIELDS FROM 视图名  |                              |
+| 查询视图     | SELECT * FROM 视图名;                     | SELECT * FROM sp_basic_view; |
 
 
 
@@ -1288,12 +1296,12 @@ delete清除数据后记录日志，可以恢复数据，相当于将表中所�
 
 查询优化 实例 1: 
 
-1. 使用子查询方式, 效率会高很多, 在id字段上创建索引, 比没有索引快几十倍, 没有索引用时2.6秒左右, 有索引 用时0.17秒左右
+1. 使用子查询方式(存疑), 效率会高很多, 在id字段上创建索引, 比没有索引快几十倍, 没有索引用时2.6秒左右, 有索引 用时0.17秒左右
 
 ```sql
-SELECT * FROM `user_operation_log` WHERE id >=1000000 LIMIT 10;
-SELECT * FROM `user_operation_log` WHERE id >= (SELECT id FROM `user_operation_log` where id = 1000000) LIMIT 10; // id是数字,且自增或雪花, 可以比较大小
-SELECT * FROM `user_operation_log` WHERE id IN (SELECT t.id FROM (SELECT id FROM `user_operation_log` LIMIT 1000000, 10) AS t); // id 不必自增
+SELECT * FROM `user_operation_log` WHERE id >=1000000 LIMIT 10; # 实践后, 这种是最快的
+SELECT * FROM `user_operation_log` WHERE id >= (SELECT id FROM `user_operation_log` where id = 1000000) LIMIT 10; // 并不快,  id是数字,且自增或雪花, 可以比较大小
+SELECT * FROM `user_operation_log` WHERE id IN (SELECT t.id FROM (SELECT id FROM `user_operation_log` LIMIT 1000000, 10) AS t); // id 不必自增 最慢, 简直不能用
 ```
 
 
@@ -1454,5 +1462,153 @@ MySQL 中，每一次查询要经过如下过程：
 
 
 
+# 50. information_schema
 
+
+
+​	
+
+# 51. 数据类型 与 java 数据类型 对照
+
+
+
+| jdbc       | jdbc范围                       | sql 类型         | java                                               |
+| ---------- | ------------------------------ | ---------------- | -------------------------------------------------- |
+| bit        | 0,1                            | bit              | Boolean                                            |
+| tinyint    | 0-255                          | tinyint          | Byte Short                                         |
+| smallint   | -32,768 - 32,767               | smallint         | Short                                              |
+| integer    | -2,147,483,648 - 2,147,483,647 | integer          | Integer                                            |
+| bigint     |                                | bigint           | Long                                               |
+| real       | 7位尾数的单精度浮点数          | real             | Float                                              |
+| double     | 15位位数的双精度浮点数         | double precision | Double                                             |
+| float      | 15位位数的双精度浮点数         | float            | Double                                             |
+| decimal    |                                | decimal          | Bigdecimal                                         |
+| numberic   |                                |                  | Bigdecimal                                         |
+| date       |                                | date             | Date                                               |
+| time       |                                | time             | Date                                               |
+| timestamp  |                                | timestamp        | Date                                               |
+| binary     | 固定长度的小二进制             |                  | java.sql.ResultSet.getByte()        byte[]         |
+| varbinary  | 长度可变的小二进制             |                  | java.sql.ResultSet.getByte()        byte[]         |
+| longbinary | 长度可变的大二进制             |                  | java.sql.ResultSet.getBinaryStream()        byte[] |
+|            |                                |                  |                                                    |
+|            |                                |                  |                                                    |
+|            |                                |                  |                                                    |
+
+
+
+# 52. 事务, 锁, for update
+
+## 1. 第一种情况
+
+1. 在我的 ubuntu 电脑上 执行: 
+
+   ```sql
+   begin;
+   select * from goods where id =1 for update; # stock =100
+   ```
+
+   此时, id=1 的这条数据被锁住
+
+2. 这时, 我在我的windows 电脑上执行
+
+   ```sql
+   update goods set stock =99 where id =1;
+   ```
+
+   这时, 这条语句并没有执行, 而是处于被挂起状态, 
+
+3. 在我的 ubuntu 电脑上 执行: 
+
+   ```sql
+   commit;
+   ```
+
+4. 此时, 我的 windows 电脑 的那条update语句立马执行了, 
+
+5. 查询结果, 
+
+   ```sql
+   select * from goods where id =1; # stock=99
+   ```
+
+   
+
+
+
+## 2. 第二种情况
+
+1. 在我的 ubuntu 电脑上 执行: 
+
+   ```sql
+   begin;
+   select * from goods where id =1 for update;
+   update goods set stock =98 where id =1;
+   ```
+
+2. 此时, 在我的windows 电脑上查询
+
+   ```sql
+   select * from goods where id=1;
+   ```
+
+3. 查询结果: stock 字段 没有变化
+
+4. 在我的 ubuntu 电脑上 执行:
+
+   ```sql
+   commit;
+   ```
+
+5. 再在我的windows 电脑上查询
+
+6. 此时, 可以看到 stock 字段有了变化
+
+
+
+## 3. 第三种情况
+
+1. 在我的 ubuntu 电脑上 执行: 
+
+   ```sql
+   begin;
+   select * from goods where id =1;  # stock =99 
+   ```
+
+   不加 `for update`
+
+2. 此时 在我的windows 电脑上 执行: 
+
+   ```sql
+   UPDATE goods SET stock=98 WHERE id=1;
+   ```
+
+3. 这条语句被执行了
+
+4. 在我的windows 电脑上 查询
+
+   ```
+   select * from goods where id =1;  # stock =98
+   ```
+
+5. 在我的 ubuntu 电脑上 执行查询
+
+   ```sql
+   select * from goods where id =1;  # stock = 99 
+   ```
+
+   stock 仍然 等于 99
+
+6. 在我的 ubuntu 电脑上执行
+
+   ```sql
+   commit;
+   ```
+
+7. 在我的 ubuntu 电脑上执行查询
+
+   ```sql
+   select * from goods where id =1;  # stock = 98
+   ```
+
+   可见 查询到了 windows 电脑上 更新后的数据
 
