@@ -1692,3 +1692,26 @@ MySQL 中，每一次查询要经过如下过程：
    原因: 数据库里有值, 但不与其值对应, 
 
    解决: 修改数据库对应的值 
+
+
+
+# 54. 删除数据库下所有表
+
+```sql
+SET @database_name = 'v7127_process_pipe_inspection_and_assessment_system_xian';
+SELECT CONCAT('DROP TABLE IF EXISTS ', table_name, ';') AS query
+FROM information_schema.tables
+WHERE table_schema = @database_name;
+
+################################################# linux 下用: 
+SET @database_name = 'v7127_process_pipe_inspection_and_assessment_system_xian';
+SELECT CONCAT('DROP TABLE IF EXISTS ', table_name, ';') AS query
+FROM information_schema.tables
+WHERE table_schema = @database_name
+INTO OUTFILE '/tmp/drop_all_tables.sql';
+SOURCE /tmp/drop_all_tables.sql;
+```
+
+
+
+这将生成一个名为`drop_all_tables.sql`的文件，其中包含所有DROP语句，然后将该文件导入到MySQL中，以依次执行这些语句。
