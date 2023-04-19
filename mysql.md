@@ -346,7 +346,7 @@ create view 视图名 as select * from 表名;
 
 
 
-# 15. 查出时间最大的一条记录
+# 15. 查出时间最大的一条记录, 有问题
 
 ```sql
     select * from 
@@ -1322,19 +1322,20 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 
 # 43. sql语句
 
-| sql语句                                                      | description            | example                                                      |
-| ------------------------------------------------------------ | ---------------------- | ------------------------------------------------------------ |
-| alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default ''  COMMENT  '裂纹距管壁最小距离[mm]'; | 添加列                 |                                                              |
-| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型       |                                                              |
-| update bank_flow set b=a;                                    | 把一列的值 挪到 另一列 |                                                              |
-| UPDATE bank_flow set id= replace(uuid(),"-","");             | 修改整列的值           |                                                              |
-| delete from api5792007_detail where corrosion_assessment_history_id = ? | 删除语句               |                                                              |
-| DROP INDEX 约束名 ON 表名;                                   | 移除约束               | DROP INDEX table_name ON common_file_meta;                   |
-| ALTER TABLE 表名 ADD CONSTRAINT 约束名 UNIQUE(列名);         | 添加唯一约束           | ALTER TABLE common_dict ADD CONSTRAINT yueshumng UNIQUE(history_id); |
-| alter table 表名 drop foreign key 外键名                     | 移除外键约束           |                                                              |
-| DROP TABLE if exists 表名;                                   | 删除表                 | DROP TABLE if exists  \`detail_water_dept\`;                 |
-| ALTER TABLE  表名  drop COLUMN   列名;                       | 删除列                 | ALTER TABLE \`result_water_depth\` drop COLUMN  \`doc_path\`; |
-|                                                              |                        |                                                              |
+| sql语句                                                      | description                                              | example                                                      |
+| ------------------------------------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------ |
+| alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default ''  COMMENT  '裂纹距管壁最小距离[mm]'; | 添加列                                                   |                                                              |
+| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                         |                                                              |
+| update bank_flow set b=a;                                    | 把一列的值 挪到 另一列                                   |                                                              |
+| UPDATE bank_flow set id= replace(uuid(),"-","");             | 修改整列的值                                             |                                                              |
+| delete from api5792007_detail where corrosion_assessment_history_id = ? | 删除语句                                                 |                                                              |
+| DROP INDEX 约束名 ON 表名;                                   | 移除约束, 索引                                           | DROP INDEX table_name ON common_file_meta;                   |
+| ALTER TABLE 表名 ADD CONSTRAINT 约束名 UNIQUE(列名);         | 添加唯一约束                                             | ALTER TABLE common_dict ADD CONSTRAINT yueshumng UNIQUE(history_id); |
+| alter table 表名 drop foreign key 外键名                     | 移除外键约束                                             |                                                              |
+| DROP TABLE if exists 表名;                                   | 删除表                                                   | DROP TABLE if exists  \`detail_water_dept\`;                 |
+| ALTER TABLE  表名  drop COLUMN   列名;                       | 删除列                                                   | ALTER TABLE \`result_water_depth\` drop COLUMN  \`doc_path\`; |
+| ALTER TABLE 表名 ADD CONSTRAINT 外键名称 FOREIGN KEY (外键字段) 
+<br/>REFERENCES 主表名 (主表字段名) ON UPDATE CASCADE ON DELETE CASCADE; | 添加外键约束类型, 修改的话, 先drop掉, 再添加, 详见下方56 |                                                              |
 
 # 44. delete 对比  truncate
 
@@ -1715,3 +1716,62 @@ SOURCE /tmp/drop_all_tables.sql;
 
 
 这将生成一个名为`drop_all_tables.sql`的文件，其中包含所有DROP语句，然后将该文件导入到MySQL中，以依次执行这些语句。
+
+
+
+# 55. 数据库ID自增 有上限吗
+
+## 1. 自定义自增主键
+
+这里产生唯一键冲突的错误，说明执行第二条插入语句时，表increment_id_test的auto_increment的值和表中已有的主键id值 4294967295相同，也即表明：当auto_incement达到上限后，再次申请下一个id时，得到的值保持不变。
+
+当把主键id的数据类型设置为int时，我们需要考虑表未来的数据量大小，毕竟 4294967295 并不是一个很大的值，对于一个每秒插入100行的业务，不到500天，就可以达到主键id上限。
+
+其实在建表时，无论主键id是否设置为可自增，当id值大小超过这个上限后，都是会报错的。主键自增的情况下，报错信息为：唯一键冲突：
+
+对于普通字段的情况，报错信息为：插入数据超出数据类型范围：
+
+
+
+## 2. row_id
+
+我们都知道，使用InnoDB存储引擎时，如果数据表没有设置主键，那么Innodb会给该表设置一个不可见，长度为6字节的默认主键 row_id。Innodb维护了一个全局的dict_sys.row_id值，这个值，被所有无主键的数据表共同使用，每个无主键的数据表，插入一行数据，都会是当前的dict_sys.row_id的值增加1.来源公众号：【码农编程进阶笔记】
+
+
+
+总结: 
+
+从上面 Innodb对row_id重复情况下的处理机制来看，在设计表时，最好还是使用自定义主键，而不要使用Innodb的默认主键，至少在自定义主键的场景下，当自增id达到上限时，插入数据，系统会提示报错信息，而不是覆盖数据，因为数据覆盖意味着数据丢失，影响的是数据可靠性，而插入失败产生的报错，影响是可用性。在数据业务中，可靠性通常是优先于可用性的。
+
+
+
+
+
+# 56. 外键约束关系
+
+
+
+|             |                                                              |
+| ----------- | ------------------------------------------------------------ |
+| no action   |                                                              |
+| restrict    |                                                              |
+| cascade     |                                                              |
+| set null    | 父表删除数据时, 首先先检查此数据是否有对应外键, 如果有则设置子表此处为null |
+| set default | 父表有变更时, 子表数据更改为默认值                           |
+
+
+
+## 1. mysql 修改 外键关联的约束, 如 cascade,  sql语句是什么
+
+```sql
+-- 修改外键约束的 ON DELETE 选项为 CASCADE
+ALTER TABLE 表名 DROP FOREIGN KEY 外键约束名;
+ALTER TABLE 表名 ADD CONSTRAINT 外键约束名 FOREIGN KEY (外键列名) REFERENCES 主表名(主键列名) ON DELETE CASCADE;
+
+-- 修改外键约束的 ON UPDATE 选项为 CASCADE
+ALTER TABLE 表名 DROP FOREIGN KEY 外键约束名;
+ALTER TABLE 表名 ADD CONSTRAINT 外键约束名 FOREIGN KEY (外键列名) REFERENCES 主表名(主键列名) ON UPDATE CASCADE;
+```
+
+
+
