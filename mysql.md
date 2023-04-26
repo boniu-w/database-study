@@ -1083,10 +1083,20 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | select @@transaction_isolation;<br />select @@tx_isolation;  | 查询事务级别(看版本使用不同的)                               | show variables like '%tx_isolation%';                        |
 | show global varibales like 'port'                            | 查询端口号                                                   |                                                              |
 | select database()                                            | 查询当前数据库名称                                           |                                                              |
+| SELECT User FROM mysql.db WHERE Db = 'wg';                   | 查询数据库名为wg 的 所有用户                                 |                                                              |
+| REVOKE ALTER ON database.table FROM 'user'@'host';  FLUSH PRIVILEGES; | 关闭用户 修改数据表数据类型的 权限                           | REVOKE ALTER ON wg.* FROM 'test001'@'localhost'; 
+<br/>FLUSH PRIVILEGES; |
+| GRANT ALTER ON database.table TO 'user'@'host';  FLUSH PRIVILEGES; | 开启用户 修改数据表数据类型的 权限                           |                                                              |
+| REVOKE ALTER, CREATE, DROP ON wg.* FROM 'test001'@'%';       | 在数据库wg 中, 关闭用户 test001对所有表的更改数据表结构的权限 |                                                              |
+| GRANT ALTER, CREATE, DROP ON wg.* TO 'test001'@'%';          | 在数据库wg 中, 赋予用户 test001对所有表的更改数据表结构的权限 |                                                              |
+| FLUSH PRIVILEGES;                                            | 刷新授权使其生效：                                           |                                                              |
+| CREATE USER 'user1'@'localhost' IDENTIFIED BY 'password1';<br />GRANT ALL PRIVILEGES ON wg.* TO 'user1'@'localhost';<br />FLUSH PRIVILEGES; | 为数据库wg, 添加用户,                                        |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
-|                                                              |                                                              |                                                              |
-|                                                              |                                                              |                                                              |
+
+
+
+
 
 
 
@@ -1322,18 +1332,27 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 
 # 43. sql语句
 
-| sql语句                                                      | description                                              | example                                                      |
-| ------------------------------------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------ |
-| alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default ''  COMMENT  '裂纹距管壁最小距离[mm]'; | 添加列                                                   |                                                              |
-| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                         |                                                              |
-| update bank_flow set b=a;                                    | 把一列的值 挪到 另一列                                   |                                                              |
-| UPDATE bank_flow set id= replace(uuid(),"-","");             | 修改整列的值                                             |                                                              |
-| delete from api5792007_detail where corrosion_assessment_history_id = ? | 删除语句                                                 |                                                              |
-| DROP INDEX 约束名 ON 表名;                                   | 移除约束, 索引                                           | DROP INDEX table_name ON common_file_meta;                   |
-| ALTER TABLE 表名 ADD CONSTRAINT 约束名 UNIQUE(列名);         | 添加唯一约束                                             | ALTER TABLE common_dict ADD CONSTRAINT yueshumng UNIQUE(history_id); |
-| alter table 表名 drop foreign key 外键名                     | 移除外键约束                                             |                                                              |
-| DROP TABLE if exists 表名;                                   | 删除表                                                   | DROP TABLE if exists  \`detail_water_dept\`;                 |
-| ALTER TABLE  表名  drop COLUMN   列名;                       | 删除列                                                   | ALTER TABLE \`result_water_depth\` drop COLUMN  \`doc_path\`; |
+| sql语句                                                      | description                                                  | example                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default ''  COMMENT  '裂纹距管壁最小距离[mm]'; | 添加列                                                       |                                                              |
+| alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                             |                                                              |
+| SELECT<br/>CONCAT( 'ALTER TABLE ', $ { tableName }, ' MODIFY ', $ { columnName }, ' decimal(10,4);' )
+FROM
+information_schema.COLUMNS
+WHERE
+table_schema = 'v7127_process_pipe_inspection_and_assessment_system_xian'
+AND data_type = 'decimal'
+AND numeric_precision = 10
+AND numeric_scale = 2; | 修改 数据库 里, 所有表  的字段 的数据类型 为 decimal(10,2), 改为decimal(10,4) |                                                              |
+| ALTER TABLE table_name MODIFY COLUMN column_name COMMENT 'new comment'; | 只修改列的注释                                               |                                                              |
+| update bank_flow set b=a;                                    | 把一列的值 挪到 另一列                                       |                                                              |
+| UPDATE bank_flow set id= replace(uuid(),"-","");             | 修改整列的值                                                 |                                                              |
+| delete from api5792007_detail where corrosion_assessment_history_id = ? | 删除语句                                                     |                                                              |
+| DROP INDEX 约束名 ON 表名;                                   | 移除约束, 索引                                               | DROP INDEX table_name ON common_file_meta;                   |
+| ALTER TABLE 表名 ADD CONSTRAINT 约束名 UNIQUE(列名);         | 添加唯一约束                                                 | ALTER TABLE common_dict ADD CONSTRAINT yueshumng UNIQUE(history_id); |
+| alter table 表名 drop foreign key 外键名                     | 移除外键约束                                                 |                                                              |
+| DROP TABLE if exists 表名;                                   | 删除表                                                       | DROP TABLE if exists  \`detail_water_dept\`;                 |
+| ALTER TABLE  表名  drop COLUMN   列名;                       | 删除列                                                       | ALTER TABLE \`result_water_depth\` drop COLUMN  \`doc_path\`; |
 | ALTER TABLE 表名 ADD CONSTRAINT 外键名称 FOREIGN KEY (外键字段) 
 <br/>REFERENCES 主表名 (主表字段名) ON UPDATE CASCADE ON DELETE CASCADE; | 添加外键约束类型, 修改的话, 先drop掉, 再添加, 详见下方56 |                                                              |
 
