@@ -558,6 +558,49 @@ DELIMITER ;
 
 
 
+## 2. 将数据库wg 中 所有 数据类型为 decimal(10,2) 的列 改为 decimal(10,4)
+
+创建存储过程
+
+```sql
+DELIMITER $$
+CREATE PROCEDURE `update_precision`()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE COLUMN_NAME VARCHAR(255);
+    DECLARE TABLE_NAME VARCHAR(255);
+    DECLARE cols_cursor CURSOR FOR 
+        SELECT COLUMN_NAME, TABLE_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA='wg' 
+          AND DATA_TYPE='decimal' AND NUMERIC_PRECISION=10 AND NUMERIC_SCALE=2;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+	
+    OPEN cols_cursor;
+
+    read_cols_loop: LOOP
+        FETCH cols_cursor INTO COLUMN_NAME, TABLE_NAME;
+        IF done THEN
+            LEAVE read_cols_loop;
+        END IF;
+        SELECT CONCAT('ALTER TABLE `', TABLE_NAME, '` MODIFY COLUMN `', COLUMN_NAME, '` decimal(10,4);');
+    END LOOP;
+
+    CLOSE cols_cursor;
+END$$
+DELIMITER ;
+```
+
+执行存储过程
+
+```
+call update_precision();
+```
+
+
+
+
+
 
 
 # 23. 日期字段有时分秒, 我只查 年月日
@@ -1090,8 +1133,11 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | REVOKE ALTER, CREATE, DROP ON wg.* FROM 'test001'@'%';       | 在数据库wg 中, 关闭用户 test001对所有表的更改数据表结构的权限 |                                                              |
 | GRANT ALTER, CREATE, DROP ON wg.* TO 'test001'@'%';          | 在数据库wg 中, 赋予用户 test001对所有表的更改数据表结构的权限 |                                                              |
 | FLUSH PRIVILEGES;                                            | 刷新授权使其生效：                                           |                                                              |
-| CREATE USER 'user1'@'localhost' IDENTIFIED BY 'password1';<br />GRANT ALL PRIVILEGES ON wg.* TO 'user1'@'localhost';<br />FLUSH PRIVILEGES; | 为数据库wg, 添加用户,                                        |                                                              |
-|                                                              |                                                              |                                                              |
+| CREATE USER 'user1'@'localhost' IDENTIFIED BY 'password1';<br />GRANT ALL PRIVILEGES ON wg.* TO 'user1'@'localhost';<br />FLUSH PRIVILEGES; | 为数据库wg, 添加用户,                                        | CREATE USER 'test001' @'localhost' IDENTIFIED BY 'test001';
+<br/> GRANT ALL PRIVILEGES ON wg.* TO 'test001' @'localhost';
+
+ FLUSH PRIVILEGES; |
+| DROP USER '用户名'@'主机名/IP';  FLUSH PRIVILEGES;           | 为数据库wg, 删除某个用户                                     |                                                              |
 |                                                              |                                                              |                                                              |
 
 
@@ -1353,8 +1399,10 @@ AND numeric_scale = 2; | 修改 数据库 里, 所有表  的字段 的数据类
 | alter table 表名 drop foreign key 外键名                     | 移除外键约束                                                 |                                                              |
 | DROP TABLE if exists 表名;                                   | 删除表                                                       | DROP TABLE if exists  \`detail_water_dept\`;                 |
 | ALTER TABLE  表名  drop COLUMN   列名;                       | 删除列                                                       | ALTER TABLE \`result_water_depth\` drop COLUMN  \`doc_path\`; |
-| ALTER TABLE 表名 ADD CONSTRAINT 外键名称 FOREIGN KEY (外键字段) 
-<br/>REFERENCES 主表名 (主表字段名) ON UPDATE CASCADE ON DELETE CASCADE; | 添加外键约束类型, 修改的话, 先drop掉, 再添加, 详见下方56 |                                                              |
+| ALTER TABLE 表名 ADD CONSTRAINT 外键名称 FOREIGN KEY (外键字段) <br/>
+REFERENCES 主表名 (主表字段名) ON UPDATE CASCADE ON DELETE CASCADE; | 添加外键约束类型, 修改的话, 先drop掉, 再添加, 详见下方56     |                                                              |
+|                                                              | 将数据库 wg中 所有 数据类型为 decimal(10,2) 的列 改为 decimal(10,4), 详见22 存储过程 |                                                              |
+
 
 # 44. delete 对比  truncate
 
