@@ -599,6 +599,8 @@ call update_precision();
 
 
 
+20230904: 不知是版本问题, 还是怎么的, 不太管用了
+
 
 
 
@@ -1374,6 +1376,10 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 
 # 43. sql语句
 
+ ## 1. sql 语句
+
+
+
 | sql语句                                                      | description                                                  | example                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default ''  COMMENT  '裂纹距管壁最小距离[mm]'; | 添加列                                                       |                                                              |
@@ -1399,6 +1405,28 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
 |                                                              |                                                              |                                                              |
+
+
+
+  ## 2.  将数据库 XXX 中 所有 数据类型为 decimal(10,2) 的列 改为 decimal(20,8),
+
+拼接法, 经测试, 好用,
+
+```sql
+SELECT COLUMN_NAME,
+	table_name,
+	DATA_TYPE,
+	COLUMN_COMMENT,
+	CONCAT( 'ALTER TABLE ', table_name, ' MODIFY ', COLUMN_NAME,
+	 'decimal(20,8) default null', 'comment "', COLUMN_COMMENT, '";' ) 
+FROM
+	information_schema.COLUMNS 
+WHERE
+	table_schema = 'v7127_process_pipe_inspection_and_assessment_system_xian' 
+	AND DATA_TYPE = 'decimal' 
+	AND NUMERIC_PRECISION = 10 
+	AND NUMERIC_SCALE = 2;
+```
 
 
 # 44. delete 对比  truncate
