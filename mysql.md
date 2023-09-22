@@ -1391,7 +1391,7 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 | UPDATE bank_flow set id= replace(uuid(),"-","");             | 修改整列的值                                                 |                                                              |
 | delete from api5792007_detail where corrosion_assessment_history_id = ? | 删除语句                                                     |                                                              |
 | DROP INDEX 约束名 ON 表名;                                   | 移除约束, 索引                                               | DROP INDEX table_name ON common_file_meta;                   |
-| ALTER TABLE 表名 ADD CONSTRAINT 约束名 UNIQUE(列名);         | 添加唯一约束                                                 | ALTER TABLE common_dict ADD CONSTRAINT yueshumng UNIQUE(history_id); |
+| ALTER TABLE 表名 ADD CONSTRAINT 约束名 UNIQUE(列名);<br />ALTER TABLE 表名 ADD UNIQUE (列名1, 列名2); | 添加唯一约束                                                 | ALTER TABLE common_dict ADD CONSTRAINT yueshumng UNIQUE(history_id); |
 | alter table 表名 drop foreign key 外键名                     | 移除外键约束                                                 |                                                              |
 | DROP TABLE if exists 表名;                                   | 删除表                                                       | DROP TABLE if exists  \`detail_water_dept\`;                 |
 | ALTER TABLE  表名  drop COLUMN   列名;                       | 删除列                                                       | ALTER TABLE \`result_water_depth\` drop COLUMN  \`doc_path\`; |
