@@ -283,11 +283,11 @@ GROUP BY
 
 | 类型       | 长度               | comment              |
 | :--------- | :----------------- | :------------------- |
-| char       | 1-255 字节         | 定长                 |
+| char       | 1-255 字符         | 定长                 |
 | varchar    | 1-255              | 变长                 |
 | tinyblob   | 1-255              | binary large objects |
 | tinytext   | 2^8-1(255)         |                      |
-| blob       | 2^16-1(65535) 字节 |                      |
+| blob       | 2^16-1(65535) 字符 |                      |
 | text       | 2^16-1             |                      |
 | mediumblob | 2^24-1(16777215)   |                      |
 | mediumtext | 2^24-1             |                      |
@@ -295,6 +295,10 @@ GROUP BY
 | longtext   | 2^32-1             |                      |
 
 ​		
+
+注意是字符, 而不是字节, 比如 varchar(255), 如果使用 `utf8mb4` 字符集和 `utf8mb4_0900_ai_ci` 排序规则，一个 `VARCHAR(255)` 字段可以存储的最大字符数是 **255**，而不是 85。
+
+`utf8mb4` 字符集下，每个字符最多占用 4 个字节，而 `VARCHAR(255)` 表示 255 个字符，因此总的最大字节数是 `255 * 4 = 1020` 字节。因此，`utf8mb4` 字符集下 `utf8mb4_0900_ai_ci` 排序规则的 `VARCHAR(255)` 可以存储最多 255 个字符。
 
 # 12. distinct 与 group by
 
@@ -1116,6 +1120,7 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 | alter table 表名 add constraint FK_ID foreign key(你的外键字段名) REFERENCES 外表表名(对应的表的主键字段名); | 新增外键约束                                                 | alter table tb_active add constraint FK_ID foreign key(user_id) REFERENCES tb_user(id) |
 | select version();                                            | 查询版本                                                     |                                                              |
 | show processlist;                                            | 查看mysql 进程正在干嘛                                       |                                                              |
+| show variables like 'lower%';                                | 查看是否区分大小写, {on,1}: 不区分, {off,0}: 区分, windows默认不区分, linux默认区分 |                                                              |
 | alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                             |                                                              |
 | SELECT<br/>	table_name <br/>FROM<br/>	information_schema.TABLES <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_type = 'base table'; | 查询数据库中所有表名;<br/>查询表名                           |                                                              |
 | SELECT<br/>*, COLUMN_NAME<br/>FROM<br/>	information_schema.COLUMNS <br/>WHERE<br/>	table_schema = 'v7098_pipeline_integrity_assessment_system' <br/>	AND table_name = 'construction_data'; | 查询列名<br />查询一个表中的所有列名                         |                                                              |
@@ -1151,6 +1156,39 @@ SELECT  b.*, ( case when b.ip= '' then 'kong' when  b.ip is NULL then 'kong'  en
 
 
 tinyint  1 -> true,  0 -> false 
+
+
+
+tinyint 型的字段如果设置为UNSIGNED类型，只能存储从0到255的整数,不能用来储存负数。
+
+tinyint 型的字段如果不设置UNSIGNED类型,存储-128到127的整数。
+
+1个tinyint型数据只占用一个字节;一个INT型数据占用四个字节。
+
+这看起来似乎差别不大，但是在比较大的表中，字节数的增长是很快的。
+
+
+
+**tinyint(1)与tinyint(2)的区别**
+
+```
+CREATE TABLE `test` (                                  
+          `id` int(11) NOT NULL AUTO_INCREMENT,                
+          `str` varchar(255) NOT NULL,                                     
+          `state` tinyint(1) unsigned zerofill DEFAULT NULL,   
+          `state2` tinyint(2) unsigned zerofill DEFAULT NULL,  
+          `state3` tinyint(3) unsigned zerofill DEFAULT NULL,  
+          `state4` tinyint(4) unsigned zerofill DEFAULT NULL,  
+          PRIMARY KEY (`id`)                                   
+        ) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8  
+ 
+insert into test (str,state,state2,state3,state4) values('csdn',4,4,4,4);
+select * from test;
+```
+
+| id   | str  | state | state2 | state3 | state4 |
+| ---- | ---- | ----- | ------ | ------ | ------ |
+| 1    | csdn | 4     | 04     | 004    | 0004   |
 
 
 
@@ -1382,8 +1420,9 @@ AND (b.jyje+0) BETWEEN ${minMoney} AND ${maxMoney}
 
 | sql语句                                                      | description                                                  | example                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default ''  COMMENT  '裂纹距管壁最小距离[mm]'; | 添加列                                                       |                                                              |
+| alter table TABLE_NAME add column NEW_COLUMN_NAME varchar(255) not null default ''  COMMENT  '裂纹距管壁最小距离[mm]'  after  某个字段; | 添加列                                                       |                                                              |
 | alter table 表名 modify column 字段名 类型                   | 修改字段数据类型                                             |                                                              |
+| alter table 表名 rename to 新表名;                           | 修改表名                                                     |                                                              |
 | ALTER TABLE 表名 CHANGE 列名 新列名 列类型                   | 修改列名                                                     |                                                              |
 | ALTER TABLE table_name COMMENT 'new_table_comment';          | 修改表注释                                                   |                                                              |
 | ALTER TABLE table_name MODIFY COLUMN column_name COMMENT 'new comment'; | 只修改列的注释                                               |                                                              |
@@ -1867,3 +1906,25 @@ ALTER TABLE 表名 ADD CONSTRAINT 外键约束名 FOREIGN KEY (外键列名) REF
 
 
 
+
+
+# 57. 大小写
+
+## 1. 字段的大小写
+
+字段值的大小写由mysql的校对规则来控制。提到校对规则，就不得不说字符集。字符集是一套符号和编码，校对规则是在字符集内用于比较字符的一套规则  .
+  一般而言，校对规则以其相关的字符集名开始，通常包括一个语言名，并且以_ci（大小写不敏感）、_cs（大小写敏感）或_bin（二元）结束 。比如 utf8字符集，utf8_general_ci,表示不区分大小写，这个是utf8字符集默认的校对规则；utf8_general_cs表示区分大小写，utf8_bin表示二进制比较，同样也区分大小写 。
+
+## 2. 表名, 库名的大小写
+
+
+
+```sql
+show variables like 'lower%';
+```
+
+![](.\image\大小写-表名.png)
+
+
+
+如图: 是不区分大小写的,  {off, 0} 是 区分大小写
