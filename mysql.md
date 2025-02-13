@@ -1848,6 +1848,16 @@ SOURCE /tmp/drop_all_tables.sql;
 
 这将生成一个名为`drop_all_tables.sql`的文件，其中包含所有DROP语句，然后将该文件导入到MySQL中，以依次执行这些语句。
 
+```sql
+SELECT CONCAT(
+    'COMMENT ON COLUMN ', 
+    table_name, 
+    '.del_flag IS ''删除标识(0-未删除 1-已删除)'';'
+) AS query
+FROM information_schema.tables
+WHERE table_schema = 'pias' AND table_type = 'BASE TABLE'
+```
+
 
 
 # 55. 数据库ID自增 有上限吗
