@@ -670,7 +670,7 @@ END $$;
 
 
 
-## 批量删除
+## 1. 批量删除
 
 ```sql
 DO $$ 
@@ -688,6 +688,31 @@ BEGIN
 END $$;
 
 ```
+
+
+
+## 2.  批量加注释
+
+```sql
+
+SELECT COLUMN_NAME,
+	table_name,
+	column_name,
+	DATA_TYPE,
+	CONCAT( 'comment on column ', table_name, '.', COLUMN_NAME,
+	 ' is',  ' \'分段历史表ID\' ;') 
+FROM
+	information_schema.COLUMNS 
+WHERE
+	table_schema = 'guandaogongsi' 
+
+		and table_name like '%pia_'
+	and column_name = 'table_name'
+	
+;
+```
+
+
 
 
 
@@ -721,3 +746,71 @@ END $$;
 |                   |          |                                                              |
 |                   |          |                                                              |
 
+
+
+
+
+# 11. 问题 bug 等
+
+## 1. 问题1 磁盘空间不足
+
+```
+Cause: com.kingbase8.util.KSQLException: ERROR: could not create temporary file "base/syssql_tmp/syssql_tmp18055.0": No space left on device
+; uncategorized SQLException; SQL state [XX000]; error code [0]; ERROR: could not create temporary file "base/syssql_tmp/syssql_tmp18055.0": No space left on device
+```
+
+
+
+该错误主要由以下原因导致：
+
+1. ‌**磁盘空间不足**‌
+   错误信息明确提示`No space left on device`，表明数据库所在磁盘分区已满，无法创建临时文件。KingbaseES在执行复杂查询、排序等操作时会生成临时文件，若存储空间不足将直接导致操作失败‌36。
+2. ‌**临时目录权限问题**‌
+   若临时文件目录`base/syssql_tmp`的权限设置不当（如所属用户或组权限不足），即使空间充足，数据库也无法正常写入文件。需检查目录权限是否允许数据库进程读写‌38。
+3. ‌**Inode耗尽**‌
+   在Linux系统中，若磁盘分区的Inode数量耗尽（即使剩余存储空间充足），也会导致无法创建新文件。可通过`df -i`命令检查Inode使用情况‌36。
+
+‌**排查步骤建议**‌：
+
+- 使用`df -h`检查磁盘空间使用率，清理大文件或日志释放空间。
+- 通过`ls -ld base/syssql_tmp`验证临时目录权限及所属用户。
+- 执行`df -i`确认Inode是否耗尽，必要时删除冗余小文件。
+- 调整数据库配置，指定更大容量的临时表空间路径（若存在多磁盘分区
+
+
+
+
+
+# 12. 查询 guandaogongsi 模式下 所有表 没有注释的字段
+
+```sql
+SELECT 
+    n.nspname AS schema_name,
+    c.relname AS table_name,
+    a.attname AS column_name
+FROM 
+    pg_namespace n
+JOIN 
+    pg_class c ON n.oid = c.relnamespace
+JOIN 
+    pg_attribute a ON c.oid = a.attrelid
+LEFT JOIN 
+    pg_description d ON a.attrelid = d.objoid AND a.attnum = d.objsubid
+WHERE 
+    n.nspname = 'guandaogongsi'
+    AND c.relkind = 'r'  -- 只考虑普通表
+    AND a.attnum > 0     -- 排除系统列
+    AND a.attisdropped = false  -- 排除已删除的列
+    AND d.objoid IS NULL;  -- 只选择没有注释的字段
+```
+
+### 代码解释：
+
+1. **pg_namespace**：该系统视图存储了数据库中的所有模式信息。
+2. **pg_class**：存储了数据库中的所有表、索引、序列等对象信息。
+3. **pg_attribute**：存储了表的所有字段信息。
+4. **pg_description**：存储了数据库对象的注释信息。
+
+通过连接这些系统视图，并使用`LEFT JOIN`来确保即使字段没有注释也会被包含在结果中。最后，使用`WHERE`子句筛选出`guandaogongsi`模式下的普通表，排除系统列和已删除的列，并只选择没有注释的字段。
+
+你可以将上述 SQL 语句在 Kingbase8 的客户端工具（如`ksql`）中执行，即可得到所需的结果。
