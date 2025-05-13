@@ -19,52 +19,37 @@ ALTER TABLE "public"."sp_ut_data_tbl" DROP CONSTRAINT ufps_primary_sp_ut_data_tb
 
 
 
-| 语句                                                         | 描述                                                         | 例子 |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ---- |
-| where assessment_date::date = '2024-05-20'                   | 类似MySQL的 DATE_FORMAT(assessment_date,'%Y-%m-%d') = '2024-05-20' |      |
-| SELECT * FROM pg_extension;                                  | 查询已安装的插件                                             |      |
-| SELECT table_name
-<br/>FROM information_schema.tables
+| 语句                                       | 描述                                                         | 例子 |
+| ------------------------------------------ | ------------------------------------------------------------ | ---- |
+| where assessment_date::date = '2024-05-20' | 类似MySQL的 DATE_FORMAT(assessment_date,'%Y-%m-%d') = '2024-05-20' |      |
+| SELECT * FROM pg_extension;                | 查询已安装的插件                                             |      |
+| select version();                          | 查询数据库版本                                               |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+|                                            |                                                              |      |
+​      
 
+```sql
+SELECT table_name
+FROM information_schema.tables
 WHERE table_schema = 'public'  -- 这里假设表在 public 模式下，你可以根据实际情况修改
+AND table_name LIKE 'defect_%';  -- 查询 数据库下所有表
+```
 
-  AND table_name LIKE 'defect_%'; | 查询数据库中某些表信息                                       |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
-|                                                              |                                                              |      |
+
 
 
 
@@ -819,3 +804,39 @@ WHERE
 通过连接这些系统视图，并使用`LEFT JOIN`来确保即使字段没有注释也会被包含在结果中。最后，使用`WHERE`子句筛选出`guandaogongsi`模式下的普通表，排除系统列和已删除的列，并只选择没有注释的字段。
 
 你可以将上述 SQL 语句在 Kingbase8 的客户端工具（如`ksql`）中执行，即可得到所需的结果。
+
+
+
+# 13. 分页语句
+
+```sql
+            SELECT * FROM (
+                SELECT t.*, ROWNUM AS rn FROM (
+                    SELECT * FROM sp_ii_mfl_data_tbl
+                    WHERE del_flag = 0
+                    AND sp_in_complete_data_id = #{spInCompleteDataId}
+                    AND create_time IS NOT NULL
+                    AND kp_value IS NOT NULL
+                    ORDER BY create_time DESC
+                ) t
+                WHERE ROWNUM <= #{page} * #{pageSize}
+            )
+            WHERE rn > (#{page} - 1) * #{pageSize};
+```
+
+
+
+在 v8R3 及以上版本可使用
+
+```sql
+SELECT *
+FROM sp_ii_mfl_data_tbl
+WHERE del_flag = 0
+AND sp_in_complete_data_id = #{spInCompleteDataId}
+AND create_time IS NOT NULL
+AND kp_value IS NOT NULL
+ORDER BY create_time DESC
+OFFSET (#{page}-1)*#{pageSize} ROWS
+FETCH NEXT #{pageSize} ROWS ONLY;
+```
+
