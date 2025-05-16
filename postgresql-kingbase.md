@@ -19,34 +19,37 @@ ALTER TABLE "public"."sp_ut_data_tbl" DROP CONSTRAINT ufps_primary_sp_ut_data_tb
 
 
 
-| 语句                                       | 描述                                                         | 例子 |
-| ------------------------------------------ | ------------------------------------------------------------ | ---- |
-| where assessment_date::date = '2024-05-20' | 类似MySQL的 DATE_FORMAT(assessment_date,'%Y-%m-%d') = '2024-05-20' |      |
-| SELECT * FROM pg_extension;                | 查询已安装的插件                                             |      |
-| select version();                          | 查询数据库版本                                               |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-|                                            |                                                              |      |
-​      
+| 语句                                                | 描述                                                         | 例子 |
+| --------------------------------------------------- | ------------------------------------------------------------ | ---- |
+| where assessment_date::date = '2024-05-20'          | 类似MySQL的 DATE_FORMAT(assessment_date,'%Y-%m-%d') = '2024-05-20' |      |
+| SELECT * FROM pg_extension;                         | 查询已安装的插件                                             |      |
+| select version();                                   | 查询数据库版本                                               |      |
+| ALTER TABLE [当前表名] RENAME TO [新表名];          | 改表名                                                       |      |
+| TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') | tochar 函数                                                  |      |
+|                                                     |                                                              |      |
+|                                                     |                                                              |      |
+|                                                     |                                                              |      |
+|                                                     |                                                              |      |
+|                                                     |                                                              |      |
+|                                                     |                                                              |      |
+|                                                     |                                                              |      |
+|                                                     |                                                              |      |
+
 
 ```sql
 SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'public'  -- 这里假设表在 public 模式下，你可以根据实际情况修改
 AND table_name LIKE 'defect_%';  -- 查询 数据库下所有表
+```
+
+
+
+```sql
+SHOW server_version;   -- 查看数据库版本（可能包含 Oracle 兼容信息） 
+SELECT * FROM user_tables;      -- Oracle 兼容模式下，Kingbase 可能会创建一些与 Oracle 类似的系统表或视图
+SELECT name, setting FROM pg_settings 
+WHERE name LIKE '%compatible_mode%';  -- 在 Kingbase 中，可以查询系统表或动态视图来检查数据库的兼容模式配置
 ```
 
 
@@ -704,6 +707,37 @@ WHERE
 
 
 
+## 3. 批量修改列的值
+
+```sql
+
+SELECT 
+    C.TABLE_NAME,
+    C.COLUMN_NAME,
+    C.DATA_TYPE,
+    CONCAT(
+        'UPDATE guandaogongsi.', 
+        C.TABLE_NAME, 
+        ' SET ', 
+        C.COLUMN_NAME, 
+        ' = ''96D92361ED5F42449F4E1DA205BCB03D'', ',
+        'update_time = CURRENT_TIMESTAMP ',
+        'WHERE ',
+        C.COLUMN_NAME,
+        ' = ''df84d6b356474d9ab08b8b50b415c5d9'';'
+    ) AS UPDATE_SQL
+FROM 
+    information_schema.COLUMNS C
+WHERE 
+    C.TABLE_SCHEMA = 'guandaogongsi'
+    AND C.TABLE_NAME LIKE '%pia_%'
+    AND C.COLUMN_NAME = 'sp_oi_dt_id';
+```
+
+
+
+
+
 
 
 # 10. 函数
@@ -838,5 +872,50 @@ AND kp_value IS NOT NULL
 ORDER BY create_time DESC
 OFFSET (#{page}-1)*#{pageSize} ROWS
 FETCH NEXT #{pageSize} ROWS ONLY;
+```
+
+
+
+# 14. 怎么确定 是 oracle 风格的
+
+## 1. 验证oracle 语法兼容性
+
+```sql
+
+-- Oracle 风格的日期格式化
+SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD') FROM DUAL;
+
+-- Oracle 风格的递归查询
+WITH RECURSIVE t(n) AS (
+  SELECT 1
+  UNION ALL
+  SELECT n+1 FROM t WHERE n < 10
+)
+SELECT * FROM t;
+```
+
+## 2. 检查系统表结构
+
+```sql
+SELECT * FROM user_tables;  -- Oracle 风格的系统视图
+```
+
+
+
+## 3. 查看会话参数
+
+```sql
+SHOW sql_compatibility;  -- 显示 SQL 兼容模式
+SHOW server_version;     -- 查看数据库版本（可能包含 Oracle 兼容信息）
+```
+
+
+
+## 4. 查询系统表(推荐)
+
+```sql
+SELECT name, setting 
+FROM pg_settings 
+WHERE name LIKE '%database_mode%';
 ```
 
