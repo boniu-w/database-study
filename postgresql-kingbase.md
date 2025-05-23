@@ -54,6 +54,42 @@ WHERE name LIKE '%compatible_mode%';  -- 在 Kingbase 中，可以查询系统�
 
 
 
+```sql
+-- 查询表是否被锁定
+SELECT 
+    pg_stat_activity.pid,
+    pg_class.relname,
+    pg_locks.mode,
+    pg_locks.granted,
+    pg_stat_activity.query,
+    pg_stat_activity.state,
+    pg_stat_activity.query_start
+FROM 
+    pg_stat_activity
+JOIN 
+    pg_locks ON pg_stat_activity.pid = pg_locks.pid
+JOIN 
+    pg_class ON pg_locks.relation = pg_class.oid
+WHERE 
+    pg_class.relname = 'ex_survey_pipeline_route'  -- 替换为你要检查的表名
+ORDER BY 
+    pg_stat_activity.query_start;
+```
+
+
+
+```sql
+-- 查询 表的状态
+SELECT 
+   *
+FROM 
+    pg_stat_activity
+WHERE 
+    state = 'idle in transaction';
+```
+
+
+
 
 
 ## 1. 外键约束
