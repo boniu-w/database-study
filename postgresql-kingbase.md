@@ -19,21 +19,21 @@ ALTER TABLE "public"."sp_ut_data_tbl" DROP CONSTRAINT ufps_primary_sp_ut_data_tb
 
 
 
-| 语句                                                | 描述                                                         | 例子 |
-| --------------------------------------------------- | ------------------------------------------------------------ | ---- |
-| where assessment_date::date = '2024-05-20'          | 类似MySQL的 DATE_FORMAT(assessment_date,'%Y-%m-%d') = '2024-05-20' |      |
-| SELECT * FROM pg_extension;                         | 查询已安装的插件                                             |      |
-| select version();                                   | 查询数据库版本                                               |      |
-| ALTER TABLE [当前表名] RENAME TO [新表名];          | 改表名                                                       |      |
-| TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') | tochar 函数                                                  |      |
-|                                                     |                                                              |      |
-|                                                     |                                                              |      |
-|                                                     |                                                              |      |
-|                                                     |                                                              |      |
-|                                                     |                                                              |      |
-|                                                     |                                                              |      |
-|                                                     |                                                              |      |
-|                                                     |                                                              |      |
+| 语句                                                         | 描述                                                         | 例子 |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ---- |
+| where assessment_date::date = '2024-05-20'                   | 类似MySQL的 DATE_FORMAT(assessment_date,'%Y-%m-%d') = '2024-05-20' |      |
+| SELECT * FROM pg_extension;                                  | 查询已安装的插件                                             |      |
+| select version();                                            | 查询数据库版本                                               |      |
+| ALTER TABLE [当前表名] RENAME TO [新表名];                   | 改表名                                                       |      |
+| TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH24:MI:SS')          | tochar 函数                                                  |      |
+| ALTER TABLE users ALTER COLUMN email DROP NOT NULL;          | 移除非空约束                                                 |      |
+| ALTER TABLE table_name ALTER COLUMN column_name DROP NOT NULL; | 移除非空约束                                                 |      |
+|                                                              |                                                              |      |
+|                                                              |                                                              |      |
+|                                                              |                                                              |      |
+|                                                              |                                                              |      |
+|                                                              |                                                              |      |
+|                                                              |                                                              |      |
 
 
 ```sql
@@ -86,6 +86,117 @@ FROM
     pg_stat_activity
 WHERE 
     state = 'idle in transaction';
+```
+
+
+
+```sql
+-- 删除 数据库 sp_ri_dt_id 值重复的, 且update_time较旧的
+DELETE FROM sp_ri_dt
+WHERE (sp_ri_dt_id, update_time) NOT IN (
+  SELECT sp_ri_dt_id, MAX(update_time)
+  FROM sp_ri_dt
+  GROUP BY sp_ri_dt_id
+);
+
+-- 查询 数据库 sp_ri_dt_id 值重复的, 且update_time较旧的
+SELECT * FROM sp_ri_dt
+WHERE (sp_ri_dt_id, update_time) NOT IN (
+  SELECT sp_ri_dt_id, MAX(update_time)
+  FROM sp_ri_dt
+  GROUP BY sp_ri_dt_id
+);
+```
+
+
+
+```sql
+-- 更改日期字段的值
+UPDATE pharmacy_strategy
+SET strategy_execution_time = 
+    MAKE_TIMESTAMP(
+        2025, 
+        05, 
+        04, 
+        EXTRACT(HOUR FROM strategy_execution_time),
+        EXTRACT(MINUTE FROM strategy_execution_time),
+        EXTRACT(SECOND FROM strategy_execution_time)
+    )::TIMESTAMP
+WHERE pipeline_name = '孔雀亭WHPA井口平台至宝云亭WHPA井口平台海底混输管道'
+```
+
+
+
+```sql
+-- 日期函数
+delete from pharmacy_strategy
+WHERE EXTRACT(YEAR FROM strategy_execution_time) = 2024;
+
+```
+
+
+
+```sql
+-- 查询数据库某张表 pg_class, pg_namespace
+SELECT
+    c.relname AS table_name,
+    n.nspname AS schema_name,
+    c.relkind,
+    CASE c.relkind
+        WHEN 'r' THEN '普通表'
+        WHEN 'i' THEN '索引'
+        WHEN 'S' THEN '序列'
+        WHEN 'v' THEN '视图'
+        WHEN 'm' THEN '物化视图'
+        WHEN 'c' THEN '复合类型'
+        WHEN 't' THEN 'TOAST表'
+        WHEN 'f' THEN '外部表'
+    END AS object_type,
+    obj_description(c.oid, 'pg_class') AS table_comment,
+    now() AS create_time
+FROM
+    pg_class c
+JOIN
+    pg_namespace n ON c.relnamespace = n.oid
+WHERE
+    c.relname = 'sp_ii_ut_data_tbl'
+    AND n.nspname = 'guandaogongsi'  -- 仅查询指定模式
+    AND c.relkind = 'r'  -- 仅普通表
+ORDER BY
+    n.nspname;
+
+-- 查 pg_namespace
+SELECT
+    c.relname AS table_name,
+    n.nspname AS schema_name,
+    c.relkind,
+    CASE c.relkind
+        WHEN 'r' THEN '普通表'
+        WHEN 'i' THEN '索引'
+        WHEN 'S' THEN '序列'
+        WHEN 'v' THEN '视图'
+        WHEN 'm' THEN '物化视图'
+        WHEN 'c' THEN '复合类型'
+        WHEN 't' THEN 'TOAST表'
+        WHEN 'f' THEN '外部表'
+    END AS object_type,
+    c.relnamespace
+FROM
+    pg_class c
+JOIN
+    pg_namespace n ON c.relnamespace = n.oid
+WHERE
+    c.relname = 'sp_ii_ut_data_tbl'
+ORDER BY
+    n.nspname;
+```
+
+
+
+```sql
+-- 改列名
+ALTER TABLE 表名
+RENAME COLUMN 原列名 TO 新列名;
 ```
 
 
@@ -531,7 +642,7 @@ SELECT concat('ALTER TABLE ', conrelid::regclass, ' DROP CONSTRAINT ', conname, 
 FROM pg_constraint  
 JOIN pg_attribute AS a ON conrelid = a.attrelid AND a.attnum = ANY(conkey)  
 JOIN pg_attribute AS af ON confrelid = af.attrelid AND af.attnum = ANY(confkey)  
-WHERE connamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')  
+WHERE connamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')  -- public 看情况改
   AND contype = 'f';  -- 确保只选择外键约束
 ```
 
@@ -955,3 +1066,259 @@ FROM pg_settings
 WHERE name LIKE '%database_mode%';
 ```
 
+
+
+# 15. 查询表结构
+
+```sql
+WITH table_comments AS (
+  SELECT 
+    cl.relname AS table_name,
+    d.description AS table_comment
+  FROM pg_class cl
+  LEFT JOIN pg_description d ON cl.oid = d.objoid AND d.objsubid = 0
+  WHERE 
+    cl.relkind = 'r'  -- 普通表
+    AND cl.relname LIKE '%defect_%'
+    AND cl.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'guandaogongsi')  -- 替换为实际模式
+)
+SELECT 
+  tc.table_comment AS "表注释",
+  c.table_name AS "表名",
+  c.column_name AS "字段名",
+  c.data_type AS "数据类型",
+  COALESCE(c.character_maximum_length::text, 
+           c.numeric_precision::text || 
+           CASE WHEN c.numeric_scale > 0 THEN ',' || c.numeric_scale::text ELSE '' END) AS "长度/精度",
+  c.is_nullable AS "是否为空",
+  c.column_default AS "默认值",
+  d.description AS "字段备注"
+FROM information_schema.columns c
+JOIN pg_class cl ON c.table_name = cl.relname
+LEFT JOIN pg_description d 
+  ON cl.oid = d.objoid 
+  AND c.ordinal_position = d.objsubid
+JOIN table_comments tc ON c.table_name = tc.table_name
+WHERE 
+  c.table_schema = 'guandaogongsi'  -- 替换为实际模式名
+  AND cl.relname LIKE '%defect_%'
+  AND cl.relkind = 'r'
+ORDER BY c.table_name, c.ordinal_position;
+```
+
+**CTE（Common Table Expression，公共表表达式）**，用于提取表注释信息。以下是详细解析：
+
+`WITH table_comments AS (...)` 创建了一个临时结果集 `table_comments`，专门用于存储表名及其对应的注释。后续查询可以直接引用这个临时结果集，避免重复查询表注释数据
+
+### **CTE 内部解析**
+
+```sql
+WITH table_comments AS (
+  SELECT 
+    cl.relname AS table_name,      -- 表名
+    d.description AS table_comment  -- 表注释
+  FROM pg_class cl                 -- 表元数据主表
+  LEFT JOIN pg_description d       -- 注释表
+    ON cl.oid = d.objoid           -- 通过表OID关联
+    AND d.objsubid = 0             -- objsubid=0表示表注释（非列注释）
+  WHERE 
+    cl.relkind = 'r'               -- 只查询普通表（'r'=regular table）
+    AND cl.relname LIKE '%defect_%' -- 表名过滤条件
+    AND cl.relnamespace = (
+      SELECT oid FROM pg_namespace WHERE nspname = 'public'
+    )  -- 限定模式为'public'（需替换为实际模式）
+)
+```
+
+
+
+### **关键组件说明**
+
+1. **表关联**：
+
+   - `pg_class`：存储数据库中所有表 / 视图的元数据（表名、OID、类型等）。
+
+   - ```
+     pg_description
+     ```
+
+     ：存储对象注释（表注释、列注释），通过以下方式区分：
+
+     - `objoid`：表 / 列所属对象的 OID（表 OID 或列所属表的 OID）。
+
+     - ```
+       objsubid
+       ```
+
+       ：注释类型标识：
+
+       - `objsubid = 0`：表注释。
+       - `objsubid > 0`：列注释（值为列的位置序号）。
+
+2. **过滤条件**：
+
+   - `cl.relkind = 'r'`：仅查询普通表，排除视图（`'v'`）、索引（`'i'`）等。
+   - `cl.relname LIKE '%defect_%'`：按表名过滤，仅保留包含`defect_`的表。
+   - `cl.relnamespace`：通过模式名（如`public`）限定表的作用域，避免跨模式查询。
+
+3. **结果输出**：
+
+   - 每行包含一个表的信息：`table_name`（表名）和`table_comment`（表注释）。
+
+### **为什么需要这个 CTE？**
+
+- **分离关注点**：将表注释的查询逻辑独立出来，使主查询更清晰。
+- **避免重复查询**：主查询中多次使用表注释时，CTE 只需查询一次。
+- **明确注释类型**：通过`d.objsubid = 0`精准获取表注释，而非列注释。
+
+### **如何修改为实际环境？**
+
+- 将 `nspname = 'public'` 替换为实际模式名（如 `nspname = 'sys'`）。
+- 调整 `cl.relname LIKE '%defect_%'` 为所需的表名过滤条件。
+- 若无需表注释，可删除整个 CTE 及主查询中与之相关的 JOIN 条件。
+
+
+
+无cte
+
+```sql
+SELECT 
+  c.table_name AS "表名",
+  c.column_name AS "字段名",
+  c.data_type AS "数据类型",
+  c.character_maximum_length AS "长度",
+  c.is_nullable AS "是否为空",
+  c.column_default AS "默认值",
+  col_description(cl.oid, c.ordinal_position::int) AS "备注"
+FROM information_schema.columns c
+JOIN pg_class cl ON c.table_name = cl.relname
+WHERE 
+  c.table_schema = 'guandaogongsi'
+  AND cl.relname LIKE '%defect_%'
+  AND cl.relkind = 'r'
+ORDER BY c.table_name, c.ordinal_position;
+```
+
+
+
+
+
+# 16. 性能, add 费时 还是 update 费时
+
+在 PostgreSQL 中，**INSERT（插入）和 UPDATE（更新）的耗时取决于具体场景**，无法一概而论。以下是关键因素分析：
+
+------
+
+### **1. 基础操作对比**
+
+- **INSERT**
+  插入新行时需：
+  ✅ 写入新数据
+  ✅ 更新所有相关索引
+  ✅ 检查约束（唯一性、外键等）
+  ✅ 写 WAL 日志（事务日志）
+- **UPDATE**
+  更新现有行时需：
+  ✅ 定位目标行（依赖索引或全表扫描）
+  ✅ **删除旧行**（标记为旧版本）
+  ✅ **插入新行**（实际是新建行版本，MVCC 机制）
+  ✅ 更新所有**被修改列的索引**
+  ✅ 检查约束
+  ✅ 写 WAL 日志
+  ⚠️ **本质是 DELETE + INSERT**，开销通常更大
+
+------
+
+### **2. 性能影响因素**
+
+#### **(1) 索引数量**
+
+- **INSERT**：需更新**所有索引**，索引越多越慢。
+- **UPDATE**：只更新**被修改列的索引**。
+  → **若更新非索引列，UPDATE 可能更快**。
+
+#### **(2) WHERE 条件效率**
+
+- **UPDATE** 依赖 `WHERE` 定位数据：
+  ✅ 有索引：极快（如 `WHERE id=100`）
+  ❌ 无索引：全表扫描，极慢（尤其大表）。
+
+#### **(3) 数据量**
+
+- **批量 INSERT**（如 `COPY` 或 多值插入）比单条快 10-100 倍。
+- **批量 UPDATE** 需逐行处理，即使条件高效也较慢。
+
+#### **(4) 触发器和约束**
+
+- 触发器、外键约束、复杂检查会**同等增加两者耗时**。
+
+#### **(5) MVCC 与 VACUUM**
+
+- **UPDATE** 产生**死行（Dead Tuples）**，需 `VACUUM` 清理，长期高并发更新可能导致表膨胀。
+- **INSERT** 只增加新行，无此问题。
+
+------
+
+### **3. 性能对比结论**
+
+| **场景**                     | **谁更快**     | **原因**                         |
+| ---------------------------- | -------------- | -------------------------------- |
+| 插入单条新记录               | ✅ **INSERT**   | UPDATE 需定位+删除旧行           |
+| 更新非索引列（带高效 WHERE） | ✅ **UPDATE**   | 避免索引更新                     |
+| 更新索引列                   | ⚠️ 可能更慢     | 需重建索引                       |
+| 批量操作（10万+行）          | ✅ **INSERT**   | COPY 导入远快于逐行更新          |
+| 无索引 WHERE 条件            | ⚠️ 两者都可能慢 | UPDATE 全表扫描；INSERT 无此问题 |
+
+------
+
+### **4. 优化建议**
+
+- **INSERT 优化**：
+  - 用 `COPY` 或 `INSERT ... VALUES (...), (...), ...` 批量插入。
+  - 减少冗余索引。
+- **UPDATE 优化**：
+  - **确保 WHERE 条件有索引**（如主键）。
+  - 避免更新未修改的列（如 `UPDATE table SET col=col`）。
+  - 拆分大批量更新：分批次执行（如 `LIMIT 1000`）。
+  - 若需全表更新，用 `CREATE TABLE AS SELECT` 重建表（锁表但更快）。
+
+------
+
+### **示例测试**
+
+sql
+
+
+
+```
+-- 测试 INSERT
+EXPLAIN ANALYZE INSERT INTO test_table (data) VALUES ('sample');
+
+-- 测试 UPDATE（带索引）
+EXPLAIN ANALYZE UPDATE test_table SET data = 'new' WHERE id = 1; -- 主键索引
+
+-- 测试 UPDATE（无索引）
+EXPLAIN ANALYZE UPDATE test_table SET data = 'new' WHERE data LIKE '%old%'; -- 全表扫描
+```
+
+------
+
+**总结**：
+
+- **多数情况下，单条 INSERT 比 UPDATE 稍快**（因 UPDATE 需额外删除旧行）。
+- **批量操作时，INSERT 优势更明显**。
+- **合理设计索引和 WHERE 条件是优化关键**。
+- 实际性能需通过 `EXPLAIN ANALYZE` 针对具体场景测试。
+
+
+
+
+
+
+
+
+
+
+
+
+  
