@@ -201,6 +201,24 @@ RENAME COLUMN 原列名 TO 新列名;
 
 
 
+```sql
+-- 删除那些不关联的数据, 这些数据是因为关联表删掉了, 本表的数据没删
+UPDATE defect_manufacturing_assessment_history
+SET del_flag = 1
+WHERE EXISTS (
+  -- 子查询：判断当前记录的ili_history_id在sp_in_complete_data中无匹配
+  SELECT 1
+  FROM defect_manufacturing_assessment_history dmah
+  LEFT JOIN sp_in_complete_data sicd 
+    ON dmah.ili_history_id = sicd.id
+  WHERE 
+    sicd.id IS NULL
+    AND dmah.id = defect_manufacturing_assessment_history.id  -- 关联当前表
+);
+```
+
+
+
 
 
 ## 1. 外键约束
@@ -1316,9 +1334,114 @@ EXPLAIN ANALYZE UPDATE test_table SET data = 'new' WHERE data LIKE '%old%'; -- �
 
 
 
+# 17. MVCC  VACUUM 都是啥
+
+# PostgreSQL 中的 MVCC 和 VACUUM 机制详解
+
+## MVCC (多版本并发控制)
+
+**MVCC (Multi-Version Concurrency Control)** 是 PostgreSQL 实现高并发的核心技术。
+
+### 核心原理：
+
+1. **数据版本化**：每次修改数据时，PostgreSQL 不会直接覆盖原数据，而是创建新版本
+2. **事务隔离**：每个事务看到的是特定时间点的数据快照
+3. **无读锁**：读操作不会阻塞写操作，写操作也不会阻塞读操作
+
+### 工作方式：
+
+- 每行数据都有两个隐藏字段：
+  - `xmin`：创建该行的事务ID
+  - `xmax`：删除/更新该行的事务ID（初始为NULL）
+- 当执行 UPDATE 时：
+  - 原行被标记为过期（设置xmax）
+  - 创建新版本的行（设置xmin）
+- 当执行 DELETE 时：
+  - 原行被标记为过期（设置xmax）
+
+### MVCC 优势：
+
+✅ 读写不冲突
+✅ 避免锁竞争
+✅ 提供事务隔离
+
+### MVCC 代价：
+
+⚠️ 会产生"死行"(dead tuples) - 即被更新或删除的旧数据版本
+
+## VACUUM 机制
+
+**VACUUM** 是 PostgreSQL 用来清理 MVCC 产生的死行的机制。
+
+### 主要作用：
+
+1. 回收被死行占用的空间
+2. 更新统计信息供查询优化器使用
+3. 冻结事务ID防止事务ID回卷
+4. 更新可见性映射(visibility map)加速查询
+
+### VACUUM 类型：
+
+1. **标准 VACUUM**：
+   - 仅标记空间为可重用
+   - 不锁表
+   - 不减少表文件大小
+2. **VACUUM FULL**：
+   - 完全重组表
+   - 回收空间给操作系统
+   - 需要排他锁
+   - 相当于"表重建"
+
+### 自动清理(Autovacuum)：
+
+PostgreSQL 有自动运行的 autovacuum 守护进程，根据配置定期清理。
+
+### 为什么需要 VACUUM？
+
+- 不清理死行会导致：
+  - 表膨胀(空间浪费)
+  - 查询性能下降(需扫描更多行)
+  - 最终可能导致事务ID回卷(灾难性故障)
+
+## MVCC 和 VACUUM 的关系
+
+MVCC 产生死行 → VACUUM 清理死行 → 维持数据库健康状态
+
+## 实际影响示例
+
+sql
+
+
+
+```
+-- 创建测试表
+CREATE TABLE test_mvcc (id serial PRIMARY KEY, data text);
+
+-- 插入数据(初始xmin=当前事务ID，xmax=NULL)
+INSERT INTO test_mvcc (data) VALUES ('version1');
+
+-- 更新数据
+BEGIN;
+UPDATE test_mvcc SET data = 'version2' WHERE id = 1;
+-- 此时原行xmax被设置，新行xmin被设置
+COMMIT;
+
+-- 查看隐藏字段
+SELECT id, data, xmin, xmax FROM test_mvcc;
+
+-- 手动执行VACUUM
+VACUUM (VERBOSE, ANALYZE) test_mvcc;
+```
+
+## 最佳实践
+
+1. 保持 autovacuum 开启并合理配置
+2. 避免长时间运行的事务(会阻止VACUUM清理)
+3. 对大表定期执行 VACUUM ANALYZE
+4. 监控表膨胀情况
+
+通过理解 MVCC 和 VACUUM 机制，可以更好地优化 PostgreSQL 性能和空间使用。
 
 
 
 
-
-  
