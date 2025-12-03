@@ -219,6 +219,21 @@ WHERE EXISTS (
 
 
 
+```sql
+-- group by
+SELECT
+    prasi.key,
+    MAX(prasi.value) AS max_value
+FROM
+    pia_risk_assessment_section_input prasi
+GROUP BY
+    prasi.key
+ORDER BY
+    prasi.key ASC;  -- 按 key 升序排序（ASC 可省略，默认即为升序）
+```
+
+
+
 
 
 ## 1. 外键约束
@@ -872,6 +887,26 @@ WHERE
 
 
 
+```sql
+--人大金仓, 查询数据 guandaogongsi 下 以 pia_ 开头的表, 查询字段id没有注释的表给id字段加注释为 "表id", 
+SELECT
+  -- 拼接COMMENT语句：针对每个无注释的id字段生成一条命令
+  'COMMENT ON COLUMN guandaogongsi.' || c.relname || '.id IS ''表id'';' AS "待执行的注释SQL"
+FROM
+  pg_class c
+  JOIN pg_namespace n ON c.relnamespace = n.oid
+  JOIN pg_attribute a ON c.oid = a.attrelid
+WHERE
+  n.nspname = 'guandaogongsi'
+  AND c.relname LIKE 'pia_%'
+  AND c.relkind = 'r'
+  AND a.attname = 'id'
+  AND a.attnum > 0
+  AND col_description(a.attrelid, a.attnum) IS  NULL;	
+```
+
+
+
 ## 3. 批量修改列的值
 
 ```sql
@@ -1087,6 +1122,51 @@ WHERE name LIKE '%database_mode%';
 
 
 # 15. 查询表结构
+
+例1:
+
+```sql
+WITH table_comments AS (
+  SELECT 
+    cl.relname AS table_name,
+    d.description AS table_comment
+  FROM pg_class cl
+  LEFT JOIN pg_description d ON cl.oid = d.objoid AND d.objsubid = 0
+  WHERE 
+    cl.relkind = 'r'  -- 普通表
+    AND cl.relname LIKE '%pia_%'
+    AND cl.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'guandaogongsi')  -- 替换为实际模式
+)
+SELECT 
+  tc.table_comment AS "表注释",
+  c.table_name AS "表名",
+  c.column_name AS "字段名",
+  c.data_type AS "数据类型",
+  
+  -- 核心改动：使用 COALESCE 将两个长度字段合并为一个
+  -- 它会优先显示 character_maximum_length，如果它是 NULL，再显示 numeric_precision
+  COALESCE(c.character_maximum_length, c.numeric_precision) AS "长度",
+  
+  -- 保留小数位数
+  c.numeric_scale AS "小数位数",
+  
+  c.is_nullable AS "是否为空",
+  c.column_default AS "默认值",
+  d.description AS "字段备注"
+FROM information_schema.columns c
+JOIN pg_class cl ON c.table_name = cl.relname
+LEFT JOIN pg_description d 
+  ON cl.oid = d.objoid 
+  AND c.ordinal_position = d.objsubid
+JOIN table_comments tc ON c.table_name = tc.table_name
+WHERE 
+  c.table_schema = 'guandaogongsi'  -- 替换为实际模式名
+  AND cl.relname LIKE '%pia_%'
+  AND cl.relkind = 'r'
+ORDER BY c.table_name, c.ordinal_position;
+```
+
+例2:
 
 ```sql
 WITH table_comments AS (
