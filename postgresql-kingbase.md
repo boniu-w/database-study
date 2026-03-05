@@ -484,8 +484,24 @@ SELECT * FROM log_entries WHERE log_timestamp = '2024-07-17 15:30:00';
 
 重启kingbase
 
-```
+```sh
+# ubuntu 重启
 /apps/Kingbase/Server/bin$ ./sys_ctl -D /apps/Kingbase/data/ restart
+```
+
+
+
+```sh
+# windows v9 启停, 在 E:\Kingbase\ES\V9\Server\bin 目录下执行
+sys_ctl stop -D E:\Kingbase\ES\V9\data
+sys_ctl start -D E:\Kingbase\ES\V9\data
+```
+
+
+
+```sh
+# 在E:\Kingbase\ES\V9\Server\bin 下执行, 测试连接数据库
+ksql -U system -d test
 ```
 
 
